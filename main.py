@@ -84,7 +84,7 @@ class Laser(Enemy):
     
     def anim(self):
         global a
-        a = randint(1, 4)
+        a = randint(1, 7)
         self.img = pygame.image.load(f"Laser{a}.png")
 
 p_img1 = pygame.image.load("Player_idle.png")
@@ -102,6 +102,9 @@ key = Sprite(500, 150, 100, 30, pygame.image.load("key.png"))
 door = Sprite(150, 120, 25, 100, pygame.image.load("door.png"))
 enemy = Enemy(300, 10000, 70, 30, enemy_img, 2)
 laser = Laser(0, 0, 20, 100, pygame.image.load("Laser1.png"), 0)
+play_btn = Sprite(wind_w/2-70, wind_h/2-50, 140, 100, pygame.image.load("Play_btn.png"))
+menu_btn = Sprite(wind_w-60, 0, 60, 30, pygame.image.load("Menu_btn.png"))
+
 plats_lvl1 = [Sprite(480, 298, 100, 30, plat_img),
               Sprite(290, 206, 100, 30, plat_img),
               Sprite(125, 134, 100, 30, plat_img)]
@@ -120,75 +123,79 @@ def reset():
     Open = False
 
 game = True
+menu = True
+
 while game:
     window.blit(bg, (0, 0))
-    player.draw()
-    player.move()
-    if lvl == 2:
-        pass
-            
-    laser.draw()
-    laser.anim()
-    ground.draw()
-    start.draw()
-    finish.draw()
-    player.rect.y -= jump
-    
-    if player.rect.colliderect(finish.rect):
-        lvl += 1
-        print(lvl)
-        reset()
-    
-    if player.rect.colliderect(enemy.rect):
-        reset()
-    
-    if lvl == 1:
-        for plat in plats_lvl1:
-            plat.draw()
-            if plat.rect.colliderect(player.rect):
-                if jump >= 0:
-                    jump = 1
-                    player.rect.y += 15
-                elif jump < 0:
-                    CanJump = False
-                    while plat.rect.colliderect(player.rect):
-                        player.rect.y -= 1
-                    CanJump = True
-    elif lvl == 2:
-        finish.rect.x = 110
-        finish.rect.y = 120
-        for plat in plats_lvl2:
-            plat.draw()
-            if plat.rect.colliderect(player.rect):
-                if jump >= 0:
-                    jump = 1
-                    player.rect.y += 15
-                elif jump < 0:
-                    CanJump = False
-                    while plat.rect.colliderect(player.rect):
-                        player.rect.y -= 1
-                    CanJump = True
+    if not menu:
+        player.draw()
+        player.move()
+        menu_btn.draw()   
+        laser.draw()
+        laser.anim()
+        ground.draw()
+        start.draw()
+        finish.draw()
+        player.rect.y -= jump
         
-        enemy.rect.y = 420
-        enemy.draw()
-        enemy.move()
-        if Open == False:
-            door.draw()
-            key.draw()
-        if player.rect.colliderect(key.rect):
-            Open = True
-    elif lvl == 3:
-        for plat in plats_lvl2:
-            plat.draw()
-            if plat.rect.colliderect(player.rect):
-                if jump >= 0:
-                    jump = 1
-                    player.rect.y += 15
-                elif jump < 0:
-                    CanJump = False
-                    while plat.rect.colliderect(player.rect):
-                        player.rect.y -= 1
-                    CanJump = True
+        if player.rect.colliderect(finish.rect):
+            lvl += 1
+            print(lvl)
+            reset()
+        
+        if player.rect.colliderect(enemy.rect):
+            reset()
+        
+        if lvl == 1:
+            for plat in plats_lvl1:
+                plat.draw()
+                if plat.rect.colliderect(player.rect):
+                    if jump >= 0:
+                        jump = 1
+                        player.rect.y += 15
+                    elif jump < 0:
+                        CanJump = False
+                        while plat.rect.colliderect(player.rect):
+                            player.rect.y -= 1
+                        CanJump = True
+        elif lvl == 2:
+            finish.rect.x = 110
+            finish.rect.y = 120
+            for plat in plats_lvl2:
+                plat.draw()
+                if plat.rect.colliderect(player.rect):
+                    if jump >= 0:
+                        jump = 1
+                        player.rect.y += 15
+                    elif jump < 0:
+                        CanJump = False
+                        while plat.rect.colliderect(player.rect):
+                            player.rect.y -= 1
+                        CanJump = True
+            
+            enemy.rect.y = 420
+            enemy.draw()
+            enemy.move()
+            if Open == False:
+                door.draw()
+                key.draw()
+            if player.rect.colliderect(key.rect):
+                Open = True
+        elif lvl == 3:
+            for plat in plats_lvl2:
+                plat.draw()
+                if plat.rect.colliderect(player.rect):
+                    if jump >= 0:
+                        jump = 1
+                        player.rect.y += 15
+                    elif jump < 0:
+                        CanJump = False
+                        while plat.rect.colliderect(player.rect):
+                            player.rect.y -= 1
+                        CanJump = True
+    
+    if menu:
+        play_btn.draw()
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -198,6 +205,10 @@ while game:
             x, y = event.pos
             print(x)
             print(y)
+            if play_btn.rect.collidepoint(x, y):
+                menu = False
+            if menu_btn.rect.collidepoint(x, y):
+                menu = True
     pygame.display.update()
     clock.tick(FPS)
 pygame.quit()
