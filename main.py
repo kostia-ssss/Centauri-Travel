@@ -48,10 +48,14 @@ class Player(Sprite):
             self.img = self.img_l
             if self.rect.x > 0:
                 self.rect.x -= self.speed
+                # if any(self.rect.colliderect(p.rect) for p in plats_lvl2) or self.rect.colliderect(door.rect):
+                #     self.rect.x += self.speed
         if keys[pygame.K_d]:
             self.img = self.img_r
             if self.rect.right < wind_w:
                 self.rect.x += self.speed
+                # if any(self.rect.colliderect(p.rect) for p in plats_lvl2) or self.rect.colliderect(door.rect):
+                #     self.rect.x -= self.speed
         
         if keys[pygame.K_SPACE] and CanJump == True:
             jump = self.jumpforce
@@ -80,12 +84,8 @@ class Laser(Enemy):
     
     def anim(self):
         global a
-        a += 1
-        if a%4 == 0:
-            self.img = pygame.image.load(f"Laser2.png")
-        elif a%2 == 0:
-            self.img = pygame.image.load(f"Laser1.png")
-        print(a)
+        a = randint(1, 4)
+        self.img = pygame.image.load(f"Laser{a}.png")
 
 p_img1 = pygame.image.load("Player_idle.png")
 p_img2 = pygame.transform.flip(p_img1, True, False)
@@ -100,7 +100,7 @@ start = Sprite(50, 400, 20, 50, pygame.image.load("Portal.png"))
 finish = Sprite(150, 90, 20, 50, pygame.image.load("Portal.png"))
 key = Sprite(500, 150, 100, 30, pygame.image.load("key.png"))
 door = Sprite(150, 120, 25, 100, pygame.image.load("door.png"))
-enemy = Enemy(300, 10000, 70, 30, enemy_img, 3)
+enemy = Enemy(300, 10000, 70, 30, enemy_img, 2)
 laser = Laser(0, 0, 20, 100, pygame.image.load("Laser1.png"), 0)
 plats_lvl1 = [Sprite(480, 298, 100, 30, plat_img),
               Sprite(290, 206, 100, 30, plat_img),
@@ -125,14 +125,7 @@ while game:
     player.draw()
     player.move()
     if lvl == 2:
-        enemy.rect.y = 420
-        enemy.draw()
-        enemy.move()
-        if Open == False:
-            door.draw()
-            key.draw()
-        if player.rect.colliderect(key.rect):
-            Open = True
+        pass
             
     laser.draw()
     laser.anim()
@@ -162,6 +155,8 @@ while game:
                         player.rect.y -= 1
                     CanJump = True
     elif lvl == 2:
+        finish.rect.x = 110
+        finish.rect.y = 120
         for plat in plats_lvl2:
             plat.draw()
             if plat.rect.colliderect(player.rect):
@@ -173,6 +168,15 @@ while game:
                     while plat.rect.colliderect(player.rect):
                         player.rect.y -= 1
                     CanJump = True
+        
+        enemy.rect.y = 420
+        enemy.draw()
+        enemy.move()
+        if Open == False:
+            door.draw()
+            key.draw()
+        if player.rect.colliderect(key.rect):
+            Open = True
     elif lvl == 3:
         for plat in plats_lvl2:
             plat.draw()
