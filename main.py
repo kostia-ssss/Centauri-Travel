@@ -100,6 +100,7 @@ plat_img = pygame.image.load("platform.png")
 enemy_img = pygame.image.load("enemy.png")
 door_img = pygame.image.load("door.png")
 key_img = pygame.image.load("key.png")
+laser_off_img = pygame.image.load("Laser_off.png")
 
 player = Player(50, 400, 30, 50, p_img1, p_img2, 5, 20)
 ground = Sprite(0, wind_h-50, wind_w, 50, plat_img)
@@ -206,17 +207,13 @@ while game:
                             player.rect.y -= 1
                         CanJump = True
             for l in lasers_lvl3:
-                if l.img != pygame.image.load("Laser_off.png"):
-                    l.draw()
-                    l.anim()
-                else:
-                    print("kk")
-                # if player.rect.colliderect(l.rect):
-                #     print(l.img)
-                    
-                    #     print("hhhh")
-                    # else:
-                    #     reset()
+                l.draw()
+                l.anim()
+                if player.rect.colliderect(l.rect):
+                    if l.img == laser_off_img:
+                        print("hhhh")
+                    else:
+                        reset()
     
     if menu:
         play_btn.draw()
