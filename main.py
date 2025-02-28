@@ -1,11 +1,12 @@
 import pygame
 pygame.init()
 from random import randint
+import time
 
 # settings
 FPS = 60
 jump = 0
-lvl = 1
+lvl = 3
 a = 1
 CanJump = True
 Open = False
@@ -21,7 +22,7 @@ bg = pygame.transform.scale(bg, (wind_w, wind_h))
 
 pygame.mixer.music.load("music.mp3")
 pygame.mixer.music.set_volume(0.3)
-pygame.mixer.music.play(-1)
+#pygame.mixer.music.play(-1)
 
 class Sprite:
     def __init__(self , x , y , w , h, img):
@@ -79,13 +80,19 @@ class Enemy(Sprite):
             self.speed *= -1
 
 class Laser(Enemy):
-    def __init__(self , x , y , w , h , img1 , speed):
-        super().__init__(x, y, w, h, img1, speed)
+    def __init__(self , x , y , w , h , img1 , delay):
+        super().__init__(x, y, w, h, img1, 0)
+        self.delay = delay
     
     def anim(self):
         global a
         a = randint(1, 7)
-        self.img = pygame.image.load(f"Laser{a}.png")
+        if cur_time%self.delay != 0:
+            self.img = pygame.image.load(f"Laser{a}.png")
+            self.img = pygame.transform.scale(self.img, (self.rect.w, self.rect.h))
+        else:
+            self.img = pygame.image.load("Laser_off.png")
+            self.img = pygame.transform.scale(self.img, (self.rect.w, self.rect.h))
 
 p_img1 = pygame.image.load("Player_idle.png")
 p_img2 = pygame.transform.flip(p_img1, True, False)
@@ -100,8 +107,7 @@ start = Sprite(50, 400, 20, 50, pygame.image.load("Portal.png"))
 finish = Sprite(150, 90, 20, 50, pygame.image.load("Portal.png"))
 key = Sprite(500, 150, 100, 30, pygame.image.load("key.png"))
 door = Sprite(150, 120, 25, 100, pygame.image.load("door.png"))
-enemy = Enemy(300, 10000, 70, 30, enemy_img, 2)
-laser = Laser(0, 0, 20, 100, pygame.image.load("Laser1.png"), 0)
+enemy_lvl2 = Enemy(300, 10000, 70, 30, enemy_img, 2)
 play_btn = Sprite(wind_w/2-70, wind_h/2-50, 140, 100, pygame.image.load("Play_btn.png"))
 menu_btn = Sprite(wind_w-60, 0, 60, 30, pygame.image.load("Menu_btn.png"))
 
@@ -112,9 +118,12 @@ plats_lvl2 = [Sprite(292, 296, 100, 30, plat_img),
               Sprite(483, 206, 100, 30, plat_img),
               Sprite(0, 202, 227, 30, plat_img),
               Sprite(0, 0, 227, 132, plat_img)]
-plats_lvl3 = [Sprite(480, 298, 100, 30, plat_img),
-              Sprite(290, 206, 100, 30, plat_img),
-              Sprite(125, 134, 100, 30, plat_img)]
+plats_lvl3 = [Sprite(0, 0, wind_w, wind_h-150, plat_img)]
+
+lasers_lvl3 = [Laser(133, 350, 20, 100, pygame.image.load("Laser1.png"), 2),
+               Laser(224, 350, 20, 100, pygame.image.load("Laser1.png"), 2),
+               Laser(367, 350, 20, 100, pygame.image.load("Laser1.png"), 2),
+               Laser(513, 350, 20, 100, pygame.image.load("Laser1.png"), 2)]
 
 def reset():
     global Open
@@ -122,17 +131,20 @@ def reset():
     player.rect.y = start.rect.y
     Open = False
 
+start_time = time.time()
+cur_time = start_time
+
 game = True
 menu = True
-
 while game:
     window.blit(bg, (0, 0))
     if not menu:
+        new_time = time.time()
+        cur_time = int(new_time - start_time)
+        
         player.draw()
         player.move()
-        menu_btn.draw()   
-        laser.draw()
-        laser.anim()
+        menu_btn.draw()
         ground.draw()
         start.draw()
         finish.draw()
@@ -143,9 +155,9 @@ while game:
             print(lvl)
             reset()
         
-        if player.rect.colliderect(enemy.rect):
+        if player.rect.colliderect(enemy_lvl2.rect):
             reset()
-        
+            
         if lvl == 1:
             for plat in plats_lvl1:
                 plat.draw()
@@ -173,16 +185,16 @@ while game:
                             player.rect.y -= 1
                         CanJump = True
             
-            enemy.rect.y = 420
-            enemy.draw()
-            enemy.move()
+            enemy_lvl2.rect.y = 420
+            enemy_lvl2.draw()
+            enemy_lvl2.move()
             if Open == False:
                 door.draw()
                 key.draw()
             if player.rect.colliderect(key.rect):
                 Open = True
         elif lvl == 3:
-            for plat in plats_lvl2:
+            for plat in plats_lvl3:
                 plat.draw()
                 if plat.rect.colliderect(player.rect):
                     if jump >= 0:
@@ -193,6 +205,18 @@ while game:
                         while plat.rect.colliderect(player.rect):
                             player.rect.y -= 1
                         CanJump = True
+            for l in lasers_lvl3:
+                if l.img != pygame.image.load("Laser_off.png"):
+                    l.draw()
+                    l.anim()
+                else:
+                    print("kk")
+                # if player.rect.colliderect(l.rect):
+                #     print(l.img)
+                    
+                    #     print("hhhh")
+                    # else:
+                    #     reset()
     
     if menu:
         play_btn.draw()
