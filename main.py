@@ -6,8 +6,9 @@ import time
 # settings
 FPS = 60
 jump = 0
-lvl = 3
+lvl = 1
 a = 1
+music = 1
 CanJump = True
 Open = False
 
@@ -22,7 +23,7 @@ bg = pygame.transform.scale(bg, (wind_w, wind_h))
 
 pygame.mixer.music.load("music.mp3")
 pygame.mixer.music.set_volume(0.3)
-#pygame.mixer.music.play(-1)
+pygame.mixer.music.play(-1)
 
 class Sprite:
     def __init__(self , x , y , w , h, img):
@@ -94,6 +95,26 @@ class Laser(Enemy):
             self.img = pygame.image.load("Laser_off.png")
             self.img = pygame.transform.scale(self.img, (self.rect.w, self.rect.h))
 
+class Lift(Sprite):
+    def __init__(self, w, h, img, speed, x1, x2, y1, y2, type):
+        super().__init__(x1, y1, w, h, img)
+        self.speed = speed
+        self.x1 = x1
+        self.x2 = x2
+        self.y1 = y1
+        self.y2 = y2
+        self.type = type
+    
+    def move(self):
+        if self.type == "horisontal":
+            self.rect.x += self.speed
+            if self.rect.x >= self.x2 or self.rect.x <= self.x1:
+                self.speed *= -1
+        elif self.type == "vertical":
+            self.rect.y += self.speed
+            if self.rect.y >= self.y2 or self.rect.y <= self.y1:
+                self.speed *= -1
+        
 p_img1 = pygame.image.load("Player_idle.png")
 p_img2 = pygame.transform.flip(p_img1, True, False)
 plat_img = pygame.image.load("platform.png")
@@ -111,6 +132,7 @@ door = Sprite(150, 120, 25, 100, pygame.image.load("door.png"))
 enemy_lvl2 = Enemy(300, 10000, 70, 30, enemy_img, 2)
 play_btn = Sprite(wind_w/2-70, wind_h/2-50, 140, 100, pygame.image.load("Play_btn.png"))
 menu_btn = Sprite(wind_w-60, 0, 60, 30, pygame.image.load("Menu_btn.png"))
+lift = Lift(100, 30, plat_img, 3, 0, 500, 0, 0, "horisontal")
 
 plats_lvl1 = [Sprite(480, 298, 100, 30, plat_img),
               Sprite(290, 206, 100, 30, plat_img),
@@ -138,11 +160,14 @@ cur_time = start_time
 game = True
 menu = True
 while game:
+    mus = Sprite(21, 17, 100, 60, pygame.image.load(f"music{music}.png"))
     window.blit(bg, (0, 0))
     if not menu:
         new_time = time.time()
         cur_time = int(new_time - start_time)
         
+        lift.draw()
+        lift.move()
         player.draw()
         player.move()
         menu_btn.draw()
@@ -172,6 +197,9 @@ while game:
                             player.rect.y -= 1
                         CanJump = True
         elif lvl == 2:
+            if Open == False:
+                door.draw()
+                key.draw()
             finish.rect.x = 110
             finish.rect.y = 120
             for plat in plats_lvl2:
@@ -189,9 +217,6 @@ while game:
             enemy_lvl2.rect.y = 420
             enemy_lvl2.draw()
             enemy_lvl2.move()
-            if Open == False:
-                door.draw()
-                key.draw()
             if player.rect.colliderect(key.rect):
                 Open = True
         elif lvl == 3:
@@ -215,8 +240,14 @@ while game:
                     else:
                         reset()
     
+    if music == 0:
+        pygame.mixer.music.pause()
+    else:
+        pygame.mixer.music.unpause()
+    
     if menu:
         play_btn.draw()
+        mus.draw()
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -230,6 +261,11 @@ while game:
                 menu = False
             if menu_btn.rect.collidepoint(x, y):
                 menu = True
+            if mus.rect.collidepoint(x, y):
+                if music == 0:
+                    music = 1
+                else:
+                    music = 0
     pygame.display.update()
     clock.tick(FPS)
 pygame.quit()
