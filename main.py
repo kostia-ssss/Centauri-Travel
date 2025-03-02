@@ -136,7 +136,7 @@ enemy_lvl2 = Enemy(300, 10000, 70, 30, enemy_img, 2)
 play_btn = Sprite(wind_w/2-70, wind_h/2-50, 140, 100, pygame.image.load("Play_btn.png"))
 menu_btn = Sprite(wind_w-60, 0, 60, 30, pygame.image.load("Menu_btn.png"))
 lift = Lift(100, 30, plat_img, 3, 570, 570, 70, 410, "vertical")
-btn = Sprite(391, 338, 30, 30, pygame.image.load("button.png"))
+btn = Sprite(391, 333, 30, 30, pygame.image.load("button.png"))
 
 plats_lvl1 = [Sprite(480, 298, 100, 30, plat_img),
               Sprite(290, 206, 100, 30, plat_img),
@@ -149,7 +149,8 @@ plats_lvl2 = [Sprite(292, 296, 100, 30, plat_img),
 
 plats_lvl3 = [Sprite(0, 0, wind_w, wind_h-150, plat_img)]
 
-plats_lvl4 = [Sprite(362, 366, 100, 20, plat_img)]
+plats_lvl4 = [Sprite(362, 366, 100, 20, plat_img),
+              Sprite(0, 96, 486, 25, plat_img)]
 
 # lasers_lvl3 = [Laser(133, 350, 20, 100, pygame.image.load("Laser1.png"), 2),
 #                Laser(224, 350, 20, 100, pygame.image.load("Laser1.png"), 2),
@@ -256,8 +257,8 @@ while game:
             #             reset()
         
         elif lvl == 4:
-            # finish.rect.x = wind_w - 100
-            # finish.rect.y = 400
+            finish.rect.x = 44
+            finish.rect.y = 21
             for plat in plats_lvl4:
                 plat.draw()
                 if plat.rect.colliderect(player.rect) or player.rect.colliderect(lift.rect):
