@@ -117,6 +117,16 @@ class Lift(Sprite):
                 self.rect.y += self.speed
                 if self.rect.y >= self.y2 or self.rect.y <= self.y1:
                     self.speed *= -1
+
+class Portal(Sprite):
+    def __init__(self, x, y, w, h, img, pair):
+        super().__init__(x, y, w, h, img)
+        self.pair = pair
+    
+    def teleport(self):
+        player.rect.x = self.pair.rect.x
+        player.rect.y = self.pair.rect.y
+        
         
 p_img1 = pygame.image.load("Player_idle.png")
 p_img2 = pygame.transform.flip(p_img1, True, False)
