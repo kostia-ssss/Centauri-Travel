@@ -162,6 +162,12 @@ plats_lvl3 = [Sprite(0, 0, wind_w, wind_h-150, plat_img)]
 plats_lvl4 = [Sprite(362, 366, 100, 20, plat_img),
               Sprite(0, 96, 486, 25, plat_img)]
 
+portal2 = Portal(283, 256, 20, 50, pygame.image.load("Portal.png"), None)
+portal1 = Portal(105, 256, 20, 50, pygame.image.load("Portal.png"), None)
+
+portal2.pair = portal1
+portal1.pair = portal2
+
 # lasers_lvl3 = [Laser(133, 350, 20, 100, pygame.image.load("Laser1.png"), 2),
 #                Laser(224, 350, 20, 100, pygame.image.load("Laser1.png"), 2),
 #                Laser(367, 350, 20, 100, pygame.image.load("Laser1.png"), 2),
@@ -280,7 +286,19 @@ while game:
                         while plat.rect.colliderect(player.rect):
                             player.rect.y -= 1
                         CanJump = True
-    
+
+                portal1.draw()
+                portal2.draw()
+                if player.rect.colliderect(portal1.rect):
+                    #portal1.teleport()
+                    jump = 0
+                    player.rect.x = portal2.rect.x - 30
+                    player.rect.y = portal2.rect.y
+                elif player.rect.colliderect(portal2.rect):
+                    #portal2.teleport()
+                    jump = 0
+                    player.rect.x = portal1.rect.x - 30
+                    player.rect.y = portal1.rect.y
     if music == 0:
         pygame.mixer.music.pause()
     else:
