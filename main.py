@@ -12,6 +12,7 @@ music = 1
 CanJump = True
 Open = False
 On = False
+Walking = False
 
 clock = pygame.time.Clock()
 
@@ -45,15 +46,18 @@ class Player(Sprite):
         self.jumpforce = jumpforce
     
     def move(self):
-        global jump, CanJump
+        global jump, CanJump, Walking
         keys = pygame.key.get_pressed()
+        Walking = False
         if keys[pygame.K_a]:
+            Walking = True
             self.img = self.img_l
             if self.rect.x > 0:
                 self.rect.x -= self.speed
                 # if any(self.rect.colliderect(p.rect) for p in plats_lvl2) or self.rect.colliderect(door.rect):
                 #     self.rect.x += self.speed
         if keys[pygame.K_d]:
+            Walking = True
             self.img = self.img_r
             if self.rect.right < wind_w:
                 self.rect.x += self.speed
@@ -70,6 +74,11 @@ class Player(Sprite):
                 self.rect.y -= 1
         else:
             jump -= 1
+    
+    def anim(self):
+        global Walking
+        if Walking == True:
+            pass
 
 class Enemy(Sprite):
     def __init__(self , x , y , w , h , img1 , speed):
@@ -186,6 +195,7 @@ cur_time = start_time
 game = True
 menu = True
 while game:
+    print(Walking)
     mus = Sprite(21, 17, 100, 60, pygame.image.load(f"music{music}.png"))
     window.blit(bg, (0, 0))
     if not menu:
