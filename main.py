@@ -9,13 +9,10 @@ FPS = 60
 jump = 0
 lvl = 4
 a = 1
-α = 0
-b = 0
 music = 1
 CanJump = True
 Open = False
 On = False
-Walking = False
 
 clock = pygame.time.Clock()
 
@@ -40,13 +37,20 @@ class Sprite:
         window.blit(self.img , (self.rect.x, self.rect.y))
         
 class Player(Sprite):
-    def __init__(self , x , y , w , h , img1, img2 , speed, jumpforce):
+    def __init__(self , x , y , w , h , img1, img2 , speed, jumpforce, images):
         super().__init__(x, y, w, h, img1)
         self.img_r = self.img
         self.img_l = pygame.transform.scale(img2, (w, h))
         self.speed = speed
-        self.speed = speed
         self.jumpforce = jumpforce
+        self.images = []
+        for im in images:
+            im = pygame.transform.scale(im, (w, h))
+            self.images.append(im)
+        self.state = "idle"
+        self.im_num = 0
+        self.anim_timer = 10
+        #print(self.images)
     
     def move(self):
         global jump, CanJump, Walking
@@ -66,6 +70,11 @@ class Player(Sprite):
                 self.rect.x += self.speed
                 # if any(self.rect.colliderect(p.rect) for p in plats_lvl2) or self.rect.colliderect(door.rect):
                 #     self.rect.x -= self.speed
+
+        if keys[pygame.K_a] or keys[pygame.K_d]:
+            self.state = "walk"
+        else:
+            self.state = "idle"
         
         if keys[pygame.K_SPACE] and CanJump == True:
             jump = self.jumpforce
@@ -78,10 +87,23 @@ class Player(Sprite):
         else:
             jump -= 1
     
-    def anim(self):
-        global Walking
-        if Walking == True:
-            pass
+    def animate(self):
+        if self.anim_timer == 0:
+            if self.state == "walk":
+                if self.im_num > 4 or self.im_num < 2:
+                    self.im_num = 2
+            elif self.state == "idle":
+                if self.im_num > 1:
+                    self.im_num = 0
+            self.image = self.images[self.im_num]
+            self.im_num += 1
+            self.anim_timer = 10
+        else:
+            self.anim_timer -= 1
+            print(self.state)
+    
+    def fire(self, pos):
+        bullets.append(Bullet(self.rect.centerx - 13,self.rect.y, 10, 10, pygame.image.load("bullet.png"), 15, pos))
 
 class Enemy(Sprite):
     def __init__(self , x , y , w , h , img1 , speed):
@@ -138,9 +160,25 @@ class Portal(Sprite):
     def teleport(self):
         player.rect.x = self.pair.rect.x
         player.rect.y = self.pair.rect.y
+
+class Bullet(Sprite):
+    def __init__(self, x, y, w, h, image, speed, pos):
+        super().__init__(x, y, w, h, image)
+        self.speed = speed
+        v1 = pygame.Vector2(x, y)
+        v2 = pygame.Vector2(pos[0], pos[1])
+        v3 = v2 - v1
+        self.vect = v3.normalize()
+
+    def move(self):
+        self.rect.x += self.vect[0] * self.speed
+        self.rect.y += self.vect[1] * self.speed
+        if self.rect.bottom <= 0 or self.rect.y > wind_h or self.rect.right <= 0 or self.rect.x > wind_w:
+            bullets.remove(self)
         
-        
-p_img1 = pygame.image.load("Player_idle.png")
+images = [pygame.image.load("Player_idle1.png"), pygame.image.load("Player_idle2.png"), pygame.image.load("Player_walk1.png"), pygame.image.load("Player_walk2.png"), pygame.image.load("Player_walk3.png")]        
+
+p_img1 = pygame.image.load("Player_idle1.png")
 p_img2 = pygame.transform.flip(p_img1, True, False)
 plat_img = pygame.image.load("platform.png")
 enemy_img = pygame.image.load("enemy.png")
@@ -148,7 +186,7 @@ door_img = pygame.image.load("door.png")
 key_img = pygame.image.load("key.png")
 laser_off_img = pygame.image.load("Laser_off.png")
 
-player = Player(50, 400, 30, 50, p_img1, p_img2, 5, 20)
+player = Player(50, 400, 30, 50, p_img1, p_img2, 5, 20, images)
 ground = Sprite(0, wind_h-50, wind_w, 50, plat_img)
 start = Sprite(50, 400, 20, 50, pygame.image.load("Portal.png"))
 finish = Sprite(150, 90, 20, 50, pygame.image.load("Portal.png"))
@@ -158,8 +196,10 @@ enemy_lvl2 = Enemy(300, 10000, 70, 30, enemy_img, 2)
 play_btn = Sprite(wind_w/2-70, wind_h/2-50, 140, 100, pygame.image.load("Play_btn.png"))
 menu_btn = Sprite(wind_w-60, 0, 60, 30, pygame.image.load("Menu_btn.png"))
 lift = Lift(100, 30, plat_img, 3, 570, 570, 70, 410, "vertical")
+lift2 = Lift(100, 30, plat_img, 3, 570, 570, 70, 304, "vertical")
 btn = Sprite(391, 333, 30, 30, pygame.image.load("button.png"))
 logo = Sprite(156, 67, 400, 70, pygame.image.load("logo.png"))
+
 
 plats_lvl1 = [Sprite(480, 298, 100, 30, plat_img),
               Sprite(290, 206, 100, 30, plat_img),
@@ -174,6 +214,11 @@ plats_lvl3 = [Sprite(0, 0, wind_w, wind_h-150, plat_img)]
 
 plats_lvl4 = [Sprite(362, 366, 100, 20, plat_img),
               Sprite(0, 96, 486, 25, plat_img)]
+
+plats_lvl5 = [Sprite(190, 379, 100, 20, plat_img),
+              Sprite(549, 346, 200, 25, plat_img)]
+
+bullets = []
 
 portal2 = Portal(283, 256, 20, 50, pygame.image.load("Portal.png"), None)
 portal1 = Portal(105, 256, 20, 50, pygame.image.load("Portal.png"), None)
@@ -211,12 +256,17 @@ while game:
         lift.move()
         player.draw()
         player.move()
+        player.animate()
         menu_btn.draw()
         ground.draw()
         start.draw()
         finish.draw()
         btn.draw()
         player.rect.y -= jump
+        
+        for b in bullets:
+            b.draw()
+            b.move()
         
         if player.rect.colliderect(finish.rect):
             lvl += 1
@@ -301,6 +351,21 @@ while game:
                         while plat.rect.colliderect(player.rect):
                             player.rect.y -= 1
                         CanJump = True
+        
+        elif lvl == 5:
+            finish.rect.x = 44
+            finish.rect.y = 21
+            for plat in plats_lvl5:
+                plat.draw()
+                if plat.rect.colliderect(player.rect) or player.rect.colliderect(lift.rect):
+                    if jump >= 0:
+                        jump = 1
+                        player.rect.y += 15
+                    elif jump < 0:
+                        CanJump = False
+                        while plat.rect.colliderect(player.rect):
+                            player.rect.y -= 1
+                        CanJump = True
 
                 portal1.draw()
                 portal2.draw()
@@ -320,7 +385,6 @@ while game:
         pygame.mixer.music.unpause()
     
     if menu:
-        b += 1
         play_btn.draw()
         mus.draw()
         logo.draw()
@@ -331,6 +395,9 @@ while game:
         
         if event.type == pygame.MOUSEBUTTONDOWN:
             x, y = event.pos
+            if event.button == 1:
+                pos = event.pos
+                player.fire(pos)
             print(x)
             print(y)
             if play_btn.rect.collidepoint(x, y):
