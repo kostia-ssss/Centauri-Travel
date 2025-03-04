@@ -10,6 +10,7 @@ jump = 0
 lvl = 4
 a = 1
 α = 0
+b = 0
 music = 1
 CanJump = True
 Open = False
@@ -158,6 +159,7 @@ play_btn = Sprite(wind_w/2-70, wind_h/2-50, 140, 100, pygame.image.load("Play_bt
 menu_btn = Sprite(wind_w-60, 0, 60, 30, pygame.image.load("Menu_btn.png"))
 lift = Lift(100, 30, plat_img, 3, 570, 570, 70, 410, "vertical")
 btn = Sprite(391, 333, 30, 30, pygame.image.load("button.png"))
+logo = Sprite(156, 67, 400, 70, pygame.image.load("logo.png"))
 
 plats_lvl1 = [Sprite(480, 298, 100, 30, plat_img),
               Sprite(290, 206, 100, 30, plat_img),
@@ -201,14 +203,6 @@ while game:
     window.blit(bg, (0, 0))
     if not menu:
         mouse_x, mouse_y = pygame.mouse.get_pos()
-        dx = abs(mouse_x - player.rect.x)
-        dy = abs(mouse_y - player.rect.y)
-        
-        hypotenuza = math.sqrt((dx*dx)+(dy*dy))
-        print(α)
-        
-        α = math.acos(dx/hypotenuza)
-        α = α*90
         
         new_time = time.time()
         cur_time = int(new_time - start_time)
@@ -326,8 +320,10 @@ while game:
         pygame.mixer.music.unpause()
     
     if menu:
+        b += 1
         play_btn.draw()
         mus.draw()
+        logo.draw()
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
