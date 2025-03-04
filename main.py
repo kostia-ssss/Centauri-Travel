@@ -2,12 +2,14 @@ import pygame
 pygame.init()
 from random import randint
 import time
+import math
 
 # settings
 FPS = 60
 jump = 0
 lvl = 4
 a = 1
+α = 0
 music = 1
 CanJump = True
 Open = False
@@ -195,10 +197,19 @@ cur_time = start_time
 game = True
 menu = True
 while game:
-    print(Walking)
     mus = Sprite(21, 17, 100, 60, pygame.image.load(f"music{music}.png"))
     window.blit(bg, (0, 0))
     if not menu:
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        dx = abs(mouse_x - player.rect.x)
+        dy = abs(mouse_y - player.rect.y)
+        
+        hypotenuza = math.sqrt((dx*dx)+(dy*dy))
+        print(α)
+        
+        α = math.acos(dx/hypotenuza)
+        α = α*90
+        
         new_time = time.time()
         cur_time = int(new_time - start_time)
         
