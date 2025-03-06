@@ -53,18 +53,15 @@ class Player(Sprite):
         #print(self.images)
     
     def move(self):
-        global jump, CanJump, Walking
+        global jump, CanJump
         keys = pygame.key.get_pressed()
-        Walking = False
         if keys[pygame.K_a]:
-            Walking = True
             self.img = self.img_l
             if self.rect.x > 0:
                 self.rect.x -= self.speed
                 # if any(self.rect.colliderect(p.rect) for p in plats_lvl2) or self.rect.colliderect(door.rect):
                 #     self.rect.x += self.speed
         if keys[pygame.K_d]:
-            Walking = True
             self.img = self.img_r
             if self.rect.right < wind_w:
                 self.rect.x += self.speed
@@ -124,10 +121,10 @@ class Laser(Sprite):
         global a
         a = randint(1, 7)
         if cur_time%self.delay != 0:
-            self.img = pygame.image.load(f"Laser{a}.png")
+            self.img = pygame.image.load(f"Lasers/Laser{a}.png")
             self.img = pygame.transform.scale(self.img, (self.rect.w, self.rect.h))
         else:
-            self.img = pygame.image.load("Laser_off.png")
+            self.img = pygame.image.load("Lasers/Laser_off.png")
             self.img = pygame.transform.scale(self.img, (self.rect.w, self.rect.h))
 
 class Lift(Sprite):
@@ -176,15 +173,15 @@ class Bullet(Sprite):
         if self.rect.bottom <= 0 or self.rect.y > wind_h or self.rect.right <= 0 or self.rect.x > wind_w:
             bullets.remove(self)
         
-images = [pygame.image.load("Player_idle1.png"), pygame.image.load("Player_idle2.png"), pygame.image.load("Player_walk1.png"), pygame.image.load("Player_walk2.png"), pygame.image.load("Player_walk3.png")]        
+images = [pygame.image.load("pl_anim/Player_idle1.png"), pygame.image.load("pl_anim/Player_idle2.png"), pygame.image.load("pl_anim/Player_walk1.png"), pygame.image.load("pl_anim/Player_walk2.png"), pygame.image.load("pl_anim/Player_walk3.png")]        
 
-p_img1 = pygame.image.load("Player_idle1.png")
+p_img1 = pygame.image.load("pl_anim/Player_idle1.png")
 p_img2 = pygame.transform.flip(p_img1, True, False)
 plat_img = pygame.image.load("platform.png")
 enemy_img = pygame.image.load("enemy.png")
 door_img = pygame.image.load("door.png")
 key_img = pygame.image.load("key.png")
-laser_off_img = pygame.image.load("Laser_off.png")
+laser_off_img = pygame.image.load("Lasers/Laser_off.png")
 
 player = Player(50, 400, 30, 50, p_img1, p_img2, 5, 20, images)
 ground = Sprite(0, wind_h-50, wind_w, 50, plat_img)
