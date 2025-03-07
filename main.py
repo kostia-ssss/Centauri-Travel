@@ -8,6 +8,7 @@ import math
 FPS = 60
 jump = 0
 lvl = 4
+score = 0
 a = 1
 music = 1
 CanJump = True
@@ -26,6 +27,7 @@ bg = pygame.transform.scale(bg, (wind_w, wind_h))
 pygame.mixer.music.load("music.mp3")
 pygame.mixer.music.set_volume(0.3)
 pygame.mixer.music.play(-1)
+coin_sound =  pygame.mixer.Sound("coin_sound.mp3")
 
 class Sprite:
     def __init__(self , x , y , w , h, img):
@@ -97,7 +99,7 @@ class Player(Sprite):
             self.anim_timer = 10
         else:
             self.anim_timer -= 1
-            print(self.state)
+            # print(self.state)
     
     def fire(self, pos):
         bullets.append(Bullet(self.rect.centerx - 13,self.rect.y, 10, 10, pygame.image.load("bullet.png"), 15, pos))
@@ -182,6 +184,7 @@ enemy_img = pygame.image.load("enemy.png")
 door_img = pygame.image.load("door.png")
 key_img = pygame.image.load("key.png")
 laser_off_img = pygame.image.load("Lasers/Laser_off.png")
+coin_img = pygame.image.load("coin.png")
 
 player = Player(50, 400, 30, 50, p_img1, p_img2, 5, 20, images)
 ground = Sprite(0, wind_h-50, wind_w, 50, plat_img)
@@ -196,7 +199,6 @@ lift = Lift(100, 30, plat_img, 3, 570, 570, 70, 410, "vertical")
 lift2 = Lift(100, 30, plat_img, 3, 570, 570, 70, 304, "vertical")
 btn = Sprite(391, 333, 30, 30, pygame.image.load("button.png"))
 logo = Sprite(156, 67, 400, 70, pygame.image.load("logo.png"))
-
 
 plats_lvl1 = [Sprite(480, 298, 100, 30, plat_img),
               Sprite(290, 206, 100, 30, plat_img),
@@ -216,6 +218,17 @@ plats_lvl5 = [Sprite(190, 379, 100, 20, plat_img),
               Sprite(549, 346, 200, 25, plat_img)]
 
 bullets = []
+
+coins = [Sprite(142, 400, 25, 25, coin_img),
+         Sprite(245, 400, 25, 25, coin_img),
+         Sprite(344, 400, 25, 25, coin_img),
+         Sprite(451, 400, 25, 25, coin_img),
+         Sprite(545, 400, 25, 25, coin_img)]
+
+font = pygame.font.SysFont("Century Gothic", 20)
+big_font = pygame.font.SysFont("Century Gothic", 40)
+
+
 
 portal2 = Portal(283, 256, 20, 50, pygame.image.load("Portal.png"), None)
 portal1 = Portal(105, 256, 20, 50, pygame.image.load("Portal.png"), None)
@@ -245,10 +258,19 @@ while game:
     window.blit(bg, (0, 0))
     if not menu:
         mouse_x, mouse_y = pygame.mouse.get_pos()
+        score_txt = font.render(f"Coins: {score}", True, (200, 255, 200))
+        window.blit(score_txt, (0, 0))
+        lvl_txt = big_font.render(f"Level {lvl}", True, (200, 255, 200))
+        window.blit(lvl_txt, (263, 214))
         
         new_time = time.time()
         cur_time = int(new_time - start_time)
-        
+        for coin in coins:
+            coin.draw()
+            if player.rect.colliderect(coin.rect):
+                coin_sound.play(1)
+                coins.remove(coin)
+                score += 1
         lift.draw()
         lift.move()
         player.draw()
