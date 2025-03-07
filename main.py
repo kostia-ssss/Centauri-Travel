@@ -2,18 +2,24 @@ import pygame
 pygame.init()
 from random import randint
 import time
-import math
+import json
 
 # settings
 FPS = 60
 jump = 0
-lvl = 4
-score = 0
 a = 1
 music = 1
 CanJump = True
 Open = False
 On = False
+
+with open("data.json", "r", encoding="utf-8") as file:
+    data = json.load(file)
+
+lvl = data["lvl"]
+score = data["coins"]
+print(lvl)
+print(score)
 
 clock = pygame.time.Clock()
 
@@ -289,7 +295,9 @@ while game:
         
         if player.rect.colliderect(finish.rect):
             lvl += 1
-            print(lvl)
+            with open("data.json", "w", encoding="utf-8") as file:
+                data["lvl"] = int(data["lvl"]) + 1
+                json.dump(data, file)
             reset()
         
         if player.rect.colliderect(enemy_lvl2.rect):
@@ -423,6 +431,9 @@ while game:
                 menu = False
             if menu_btn.rect.collidepoint(x, y):
                 menu = True
+                with open("data.json", "w", encoding="utf-8") as file:
+                    data["coins"] = int(data["coins"]) + (score-int(data["coins"]))
+                    json.dump(data, file)
             if mus.rect.collidepoint(x, y):
                 if music == 0:
                     music = 1
