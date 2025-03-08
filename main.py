@@ -179,7 +179,7 @@ enemy_lvl2 = Enemy(300, 10000, 70, 30, enemy_img, 2)
 play_btn = Sprite(wind_w/2-70, wind_h/2-50, 140, 100, pygame.image.load("Play_btn.png"))
 menu_btn = Sprite(wind_w-60, 0, 60, 30, pygame.image.load("Menu_btn.png"))
 lift = Lift(100, 30, plat_img, 3, 570, 570, 70, 410, "vertical")
-lift2 = Lift(100, 30, plat_img, 3, 570, 570, 70, 304, "vertical")
+lift2 = Lift(100, 30, plat_img, 1, 570, 570, 100, 304, "vertical")
 btn = Sprite(391, 333, 30, 30, pygame.image.load("button.png"))
 logo = Sprite(156, 67, 400, 70, pygame.image.load("logo.png"))
 
@@ -266,8 +266,6 @@ while game:
                 coin_sound.play(1)
                 coins.remove(coin)
                 score += 1
-        lift.draw()
-        lift.move()
         player.draw()
         player.move()
         menu_btn.draw()
@@ -355,6 +353,8 @@ while game:
         elif lvl == 4:
             finish.rect.x = 44
             finish.rect.y = 21
+            lift.draw()
+            lift.move()
             for plat in plats_lvl4:
                 plat.draw()
                 if plat.rect.colliderect(player.rect) or player.rect.colliderect(lift.rect):
@@ -372,6 +372,8 @@ while game:
             finish.rect.y = 21
             for plat in plats_lvl5:
                 plat.draw()
+                lift2.draw()
+                lift2.move()
                 if plat.rect.colliderect(player.rect) or player.rect.colliderect(lift.rect):
                     if jump >= 0:
                         jump = 1
