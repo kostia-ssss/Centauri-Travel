@@ -19,8 +19,7 @@ with open("data.json", "r", encoding="utf-8") as file:
 
 lvl = data["lvl"]
 score = data["coins"]
-print(lvl)
-print(score)
+costume = data["costume"]
 
 clock = pygame.time.Clock()
 
@@ -46,20 +45,14 @@ class Sprite:
         window.blit(self.img , (self.rect.x, self.rect.y))
         
 class Player(Sprite):
-    def __init__(self , x , y , w , h , img1, img2 , speed, jumpforce, images):
+    def __init__(self , x , y , w , h , img1, img2 , speed, jumpforce):
         super().__init__(x, y, w, h, img1)
+        global costume
         self.img_r = self.img
         self.img_l = pygame.transform.scale(img2, (w, h))
         self.speed = speed
         self.jumpforce = jumpforce
-        self.images = []
-        for im in images:
-            im = pygame.transform.scale(im, (w, h))
-            self.images.append(im)
         self.state = "idle"
-        self.im_num = 0
-        self.anim_timer = 10
-        #print(self.images)
     
     def move(self):
         global jump, CanJump
@@ -92,21 +85,6 @@ class Player(Sprite):
                 self.rect.y -= 1
         else:
             jump -= 1
-    
-    def animate(self):
-        if self.anim_timer == 0:
-            if self.state == "walk":
-                if self.im_num > 4 or self.im_num < 2:
-                    self.im_num = 2
-            elif self.state == "idle":
-                if self.im_num > 1:
-                    self.im_num = 0
-            self.image = self.images[self.im_num]
-            self.im_num += 1
-            self.anim_timer = 10
-        else:
-            self.anim_timer -= 1
-            # print(self.state)
     
     def fire(self, pos):
         bullets.append(Bullet(self.rect.centerx - 13,self.rect.y, 10, 10, pygame.image.load("bullet.png"), 15, pos))
@@ -180,9 +158,7 @@ class Bullet(Sprite):
         self.rect.x += self.vect[0] * self.speed
         self.rect.y += self.vect[1] * self.speed
         if self.rect.bottom <= 0 or self.rect.y > wind_h or self.rect.right <= 0 or self.rect.x > wind_w:
-            bullets.remove(self)
-        
-images = [pygame.image.load("pl_anim/Player_idle1.png"), pygame.image.load("pl_anim/Player_idle2.png"), pygame.image.load("pl_anim/Player_walk1.png"), pygame.image.load("pl_anim/Player_walk2.png"), pygame.image.load("pl_anim/Player_walk3.png")]        
+            bullets.remove(self)   
 
 p_img1 = pygame.image.load("pl_anim/Player_idle1.png")
 p_img2 = pygame.transform.flip(p_img1, True, False)
@@ -193,7 +169,7 @@ key_img = pygame.image.load("key.png")
 laser_off_img = pygame.image.load("Lasers/Laser_off.png")
 coin_img = pygame.image.load("coin.png")
 
-player = Player(50, 400, 30, 50, p_img1, p_img2, 5, 20, images)
+player = Player(50, 400, 30, 50, p_img1, p_img2, 5, 20)
 ground = Sprite(0, wind_h-50, wind_w, 50, plat_img)
 start = Sprite(50, 400, 20, 50, pygame.image.load("Portal.png"))
 finish = Sprite(150, 90, 20, 50, pygame.image.load("Portal.png"))
@@ -255,6 +231,11 @@ def reset():
     Open = False
     On = False
 
+def save_costume(costume):
+    with open("data.json", "w", encoding="utf-8") as file:
+        data["costume"] = costume
+        json.dump(data, file)
+
 start_time = time.time()
 cur_time = start_time
 
@@ -264,9 +245,11 @@ while game:
     mus = Sprite(21, 17, 100, 60, pygame.image.load(f"music{music}.png"))
     window.blit(bg, (0, 0))
     if not menu:
+        player.img = pygame.image.load(f"pl_anim/{costume}_idle1.png")
+        player.img = pygame.transform.scale(player.img, (player.rect.w, player.rect.h))
         if patrons < 70:
             patrons += 0.01
-        
+        print(costume)
         mouse_x, mouse_y = pygame.mouse.get_pos()
         score_txt = font.render(f"Coins: {score}", True, (200, 255, 200))
         window.blit(score_txt, (0, 0))
@@ -287,7 +270,6 @@ while game:
         lift.move()
         player.draw()
         player.move()
-        player.animate()
         menu_btn.draw()
         ground.draw()
         start.draw()
@@ -425,6 +407,22 @@ while game:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             game = False
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_1]:
+            costume = "Player"
+            save_costume(costume)
+        elif keys[pygame.K_2]:
+            costume = "White"
+            save_costume(costume)
+        elif keys[pygame.K_3]:
+            costume = "Green"
+            save_costume(costume)
+        elif keys[pygame.K_4]:
+            costume = "Yellow"
+            save_costume(costume)
+        elif keys[pygame.K_5]:
+            costume = "Purple"
+            save_costume(costume)
         
         if event.type == pygame.MOUSEBUTTONDOWN:
             x, y = event.pos
