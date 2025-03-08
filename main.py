@@ -9,6 +9,7 @@ FPS = 60
 jump = 0
 a = 1
 music = 1
+patrons = 70
 CanJump = True
 Open = False
 On = False
@@ -263,9 +264,14 @@ while game:
     mus = Sprite(21, 17, 100, 60, pygame.image.load(f"music{music}.png"))
     window.blit(bg, (0, 0))
     if not menu:
+        if patrons < 70:
+            patrons += 0.01
+        
         mouse_x, mouse_y = pygame.mouse.get_pos()
         score_txt = font.render(f"Coins: {score}", True, (200, 255, 200))
         window.blit(score_txt, (0, 0))
+        p_txt = font.render(f"Patrons: {int(patrons)}", True, (170, 255, 200))
+        window.blit(p_txt, (wind_w-180, 0))
         lvl_txt = big_font.render(f"Level {lvl}", True, (200, 255, 200))
         window.blit(lvl_txt, (263, 214))
         
@@ -424,7 +430,9 @@ while game:
             x, y = event.pos
             if event.button == 1:
                 pos = event.pos
-                player.fire(pos)
+                if patrons > 0:
+                    player.fire(pos)
+                    patrons -= 1
             print(x)
             print(y)
             if play_btn.rect.collidepoint(x, y):
