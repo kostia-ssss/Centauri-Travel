@@ -198,7 +198,9 @@ plats_lvl4 = [Sprite(362, 366, 100, 20, plat_img),
               Sprite(0, 96, 486, 25, plat_img)]
 
 plats_lvl5 = [Sprite(190, 379, 100, 20, plat_img),
-              Sprite(549, 346, 200, 25, plat_img)]
+              Sprite(549, 346, 200, 25, plat_img),
+              Sprite(0, 150, 150, 20, plat_img),
+              Sprite(150, 0, 20, 170, plat_img)]
 
 bullets = []
 
@@ -249,7 +251,6 @@ while game:
         player.img = pygame.transform.scale(player.img, (player.rect.w, player.rect.h))
         if patrons < 70:
             patrons += 0.01
-        print(costume)
         mouse_x, mouse_y = pygame.mouse.get_pos()
         score_txt = font.render(f"Coins: {score}", True, (200, 255, 200))
         window.blit(score_txt, (0, 0))
@@ -368,8 +369,17 @@ while game:
                         CanJump = True
         
         elif lvl == 5:
-            finish.rect.x = 44
-            finish.rect.y = 21
+            finish.rect.x = 630
+            finish.rect.y = 400
+            portal2.rect.x = 26
+            portal2.rect.y = 95
+            key.rect.x = 570
+            key.rect.y = 70
+            btn.rect.x = 86
+            btn.rect.y = 95
+            if Open == False:
+                door.draw()
+                key.draw()
             for plat in plats_lvl5:
                 plat.draw()
                 lift2.draw()
@@ -389,12 +399,12 @@ while game:
                 if player.rect.colliderect(portal1.rect):
                     #portal1.teleport()
                     jump = 0
-                    player.rect.x = portal2.rect.x - 30
+                    player.rect.x = portal2.rect.x - 30 * randint(-1, 1)
                     player.rect.y = portal2.rect.y
                 elif player.rect.colliderect(portal2.rect):
                     #portal2.teleport()
                     jump = 0
-                    player.rect.x = portal1.rect.x - 30
+                    player.rect.x = portal1.rect.x - 30 * randint(-1, 1)
                     player.rect.y = portal1.rect.y
     if music == 0:
         pygame.mixer.music.pause()
