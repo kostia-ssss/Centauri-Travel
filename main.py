@@ -295,6 +295,8 @@ while game:
         start.draw()
         finish.draw()
         btn.draw()
+        lift2.draw()
+        lift2.move()
         player.rect.y -= jump
         
         for b in bullets:
@@ -405,9 +407,7 @@ while game:
                 key.draw()
             for plat in plats_lvl5:
                 plat.draw()
-                lift2.draw()
-                lift2.move()
-                if plat.rect.colliderect(player.rect) or player.rect.colliderect(lift.rect):
+                if plat.rect.colliderect(player.rect) or player.rect.colliderect(lift2.rect):
                     if jump >= 0:
                         jump = 1
                         player.rect.y += 15
@@ -416,7 +416,7 @@ while game:
                         while plat.rect.colliderect(player.rect):
                             player.rect.y -= 1
                         CanJump = True
-
+            
                 portal1.draw()
                 portal2.draw()
                 if player.rect.colliderect(portal1.rect):
@@ -432,6 +432,7 @@ while game:
                     
                 if player.rect.colliderect(key.rect):
                     Open = True
+    
     if music == 0:
         pygame.mixer.music.pause()
     else:
