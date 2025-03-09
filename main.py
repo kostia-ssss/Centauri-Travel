@@ -8,12 +8,16 @@ import json
 FPS = 60
 jump = 0
 a = 1
-i = 1
 music = 1
 patrons = 70
 CanJump = True
 Open = False
 On = False
+CanBuyYellow = False
+CanBuyWhite = False
+CanBuyGreen = False
+CanBuyPurple = False
+CanBuyTurquoise = False
 
 with open("data.json", "r", encoding="utf-8") as file:
     data = json.load(file)
@@ -178,11 +182,22 @@ key = Sprite(500, 150, 100, 30, pygame.image.load("key.png"))
 door = Sprite(150, 120, 25, 100, pygame.image.load("door.png"))
 enemy_lvl2 = Enemy(300, 10000, 70, 30, enemy_img, 2)
 play_btn = Sprite(wind_w/2-70, wind_h/2-50, 140, 100, pygame.image.load("Play_btn.png"))
+shop_btn = Sprite(wind_w/2-70, wind_h/2+100, 140, 100, pygame.image.load("Shop_btn.png"))
+QTM_btn = Sprite(0, 0, 70, 50, pygame.image.load("Quit_to_menu_btn.png"))
 menu_btn = Sprite(wind_w-60, 0, 60, 30, pygame.image.load("Menu_btn.png"))
 lift = Lift(100, 30, plat_img, 3, 570, 570, 70, 410, "vertical")
 lift2 = Lift(100, 30, plat_img, 1, 570, 570, 100, 304, "vertical")
 btn = Sprite(391, 333, 30, 30, pygame.image.load("button.png"))
 logo = Sprite(156, 67, 400, 70, pygame.image.load("logo.png"))
+shop_shablon = Sprite(0, 0, wind_w, wind_h, pygame.image.load("shop.png"))
+
+buy_btn1 = Sprite(68, 209, 35, 25, pygame.image.load("buy_btn.png"))
+buy_btn2 = Sprite(242, 207, 35, 25, pygame.image.load("buy_btn.png"))
+buy_btn3 = Sprite(396, 214, 35, 25, pygame.image.load("buy_btn.png"))
+buy_btn4 = Sprite(556, 197, 35, 25, pygame.image.load("buy_btn.png"))
+buy_btn5 = Sprite(68, 436, 35, 25, pygame.image.load("buy_btn.png"))
+
+buybtns = [buy_btn1, buy_btn2, buy_btn3, buy_btn4, buy_btn5]
 
 plats_lvl1 = [Sprite(480, 298, 100, 30, plat_img),
               Sprite(290, 206, 100, 30, plat_img),
@@ -248,8 +263,8 @@ cur_time = start_time
 
 game = True
 menu = True
+shop = False
 while game:
-    i += 1
     mus = Sprite(21, 17, 100, 60, pygame.image.load(f"music{music}.png"))
     window.blit(bg, (0, 0))
     if not menu:
@@ -423,27 +438,34 @@ while game:
         pygame.mixer.music.unpause()
     
     if score >= 5:
-        data["costumes"]["Yellow"] = "Yes"
+        CanBuyYellow = True
         save()
     if score >= 10:
-        data["costumes"]["White"] = "Yes"
+        CanBuyWhite = True
         save()
     if score >= 15:
-        data["costumes"]["Green"] = "Yes"
+        CanBuyGreen = True
         save()
     if score >= 20:
-        data["costumes"]["Purple"] = "Yes"
+        CanBuyPurple = True
         save()
     if score >= 25:
-        data["costumes"]["Turquoise"] = "Yes"
+        CanBuyTurquoise = True
         save()
     
     if menu:
         play_btn.draw()
+        shop_btn.draw()
         mus.draw()
         logo.draw()
         score_txt = font.render(f"Coins: {score}", True, (200, 255, 200))
         window.blit(score_txt, (0, 0))
+    
+    if shop:
+        shop_shablon.draw()
+        QTM_btn.draw()
+        for btn in buybtns:
+            btn.draw()
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -479,17 +501,38 @@ while game:
             print(y)
             if play_btn.rect.collidepoint(x, y):
                 menu = False
+            if QTM_btn.rect.collidepoint(x, y):
+                shop = False
             if menu_btn.rect.collidepoint(x, y):
                 menu = True
                 with open("data.json", "w", encoding="utf-8") as file:
                     data["coins"] = int(data["coins"]) + (score-int(data["coins"]))
                     json.dump(data, file)
+            if shop_btn.rect.collidepoint(x, y):
+                shop = True
+            
+            if buy_btn1.rect.collidepoint(x, y) and CanBuyGreen:
+                data["costumes"]["Green"] = "Yes"
+                print("ppp")
+            if buy_btn2.rect.collidepoint(x, y) and CanBuyPurple:
+                data["costumes"]["Purple"] = "Yes"
+                print("fff")
+            if buy_btn3.rect.collidepoint(x, y) and CanBuyYellow:
+                data["costumes"]["Yellow"] = "Yes"
+                print("ddd")
+            if buy_btn4.rect.collidepoint(x, y) and CanBuyWhite:
+                data["costumes"]["White"] = "Yes"
+                print("aaa")
+            if buy_btn5.rect.collidepoint(x, y) and CanBuyTurquoise:
+                data["costumes"]["Turquoise"] = "Yes"
+                print("qqq")
+            
             if mus.rect.collidepoint(x, y):
                 if music == 0:
                     music = 1
                 else:
                     music = 0
-    save()
+    # save()
     pygame.display.update()
     clock.tick(FPS)
 pygame.quit()
