@@ -8,6 +8,7 @@ import json
 FPS = 60
 jump = 0
 a = 1
+i = 1
 music = 1
 patrons = 70
 CanJump = True
@@ -238,12 +239,17 @@ def save_costume(costume):
         data["costume"] = costume
         json.dump(data, file)
 
+def save():
+    with open("data.json", "w", encoding="utf-8") as file:
+        json.dump(data, file)
+
 start_time = time.time()
 cur_time = start_time
 
 game = True
 menu = True
 while game:
+    i += 1
     mus = Sprite(21, 17, 100, 60, pygame.image.load(f"music{music}.png"))
     window.blit(bg, (0, 0))
     if not menu:
@@ -375,6 +381,8 @@ while game:
             portal2.rect.y = 95
             key.rect.x = 570
             key.rect.y = 70
+            door.rect.x = 594
+            door.rect.y = 370
             btn.rect.x = 86
             btn.rect.y = 95
             if Open == False:
@@ -406,15 +414,36 @@ while game:
                     jump = 0
                     player.rect.x = portal1.rect.x - 30 * randint(-1, 1)
                     player.rect.y = portal1.rect.y
+                    
+                if player.rect.colliderect(key.rect):
+                    Open = True
     if music == 0:
         pygame.mixer.music.pause()
     else:
         pygame.mixer.music.unpause()
     
+    if score >= 5:
+        data["costumes"]["Yellow"] = "Yes"
+        save()
+    if score >= 10:
+        data["costumes"]["White"] = "Yes"
+        save()
+    if score >= 15:
+        data["costumes"]["Green"] = "Yes"
+        save()
+    if score >= 20:
+        data["costumes"]["Purple"] = "Yes"
+        save()
+    if score >= 25:
+        data["costumes"]["Turquoise"] = "Yes"
+        save()
+    
     if menu:
         play_btn.draw()
         mus.draw()
         logo.draw()
+        score_txt = font.render(f"Coins: {score}", True, (200, 255, 200))
+        window.blit(score_txt, (0, 0))
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -423,17 +452,20 @@ while game:
         if keys[pygame.K_1]:
             costume = "Player"
             save_costume(costume)
-        elif keys[pygame.K_2]:
-            costume = "White"
-            save_costume(costume)
-        elif keys[pygame.K_3]:
-            costume = "Green"
-            save_costume(costume)
-        elif keys[pygame.K_4]:
+        elif keys[pygame.K_2] and data["costumes"]["Yellow"] == "Yes":
             costume = "Yellow"
             save_costume(costume)
-        elif keys[pygame.K_5]:
+        elif keys[pygame.K_3] and data["costumes"]["White"] == "Yes":
+            costume = "White"
+            save_costume(costume)
+        elif keys[pygame.K_4] and data["costumes"]["Green"] == "Yes":
+            costume = "Green"
+            save_costume(costume)
+        elif keys[pygame.K_5] and data["costumes"]["Purple"] == "Yes":
             costume = "Purple"
+            save_costume(costume)
+        elif keys[pygame.K_6] and data["costumes"]["Turquoise"] == "Yes":
+            costume = "Turquoise"
             save_costume(costume)
         
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -457,6 +489,7 @@ while game:
                     music = 1
                 else:
                     music = 0
+    save()
     pygame.display.update()
     clock.tick(FPS)
 pygame.quit()
