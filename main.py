@@ -29,7 +29,7 @@ costume = data["costume"]
 if data["music"] == "Yes":
     music = 1
 else:
-    music == "No"
+    music = 0
 
 clock = pygame.time.Clock()
 
@@ -382,6 +382,7 @@ while game:
         elif lvl == 3:
             finish.rect.x = wind_w - 100
             finish.rect.y = 400
+            enemy_lvl2.rect.y = 10000
             for plat in plats_lvl3:
                 plat.draw()
                 if plat.rect.colliderect(player.rect):
