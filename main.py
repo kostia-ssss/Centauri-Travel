@@ -19,6 +19,7 @@ CanBuyWhite = False
 CanBuyGreen = False
 CanBuyPurple = False
 CanBuyTurquoise = False
+PlayHistory = False
 
 with open("data.json", "r", encoding="utf-8") as file:
     data = json.load(file)
@@ -188,6 +189,7 @@ door = Sprite(150, 120, 25, 100, pygame.image.load("door.png"))
 enemy_lvl2 = Enemy(300, 10000, 70, 30, enemy_img, 2)
 play_btn = Sprite(wind_w/2-70, wind_h/2-50, 140, 100, pygame.image.load("Play_btn.png"))
 shop_btn = Sprite(wind_w/2-70, wind_h/2+100, 140, 100, pygame.image.load("Shop_btn.png"))
+history_btn = Sprite(27, 280, 140, 100, pygame.image.load("History_btn.png"))
 QTM_btn = Sprite(0, 0, 70, 50, pygame.image.load("Quit_to_menu_btn.png"))
 menu_btn = Sprite(wind_w-60, 0, 60, 30, pygame.image.load("Menu_btn.png"))
 lift1 = Lift(100, 30, plat_img, 3, 570, 570, 70, 410, "vertical")
@@ -195,6 +197,13 @@ lift2 = Lift(100, 30, plat_img, 1, 570, 570, 100, 304, "vertical")
 btn = Sprite(391, 333, 30, 30, pygame.image.load("button.png"))
 logo = Sprite(156, 67, 400, 70, pygame.image.load("logo.png"))
 shop_shablon = Sprite(0, 0, wind_w, wind_h, pygame.image.load("shop.png"))
+
+hist1 = Sprite(0, 0, wind_w, wind_h, pygame.image.load("kat_scena/1.png"))
+hist2 = Sprite(0, 0, wind_w, wind_h, pygame.image.load("kat_scena/2.png"))
+hist3 = Sprite(0, 0, wind_w, wind_h, pygame.image.load("kat_scena/3.png"))
+hist4 = Sprite(0, 0, wind_w, wind_h, pygame.image.load("kat_scena/4.png"))
+hist5 = Sprite(0, 0, wind_w, wind_h, pygame.image.load("kat_scena/5.png"))
+
 lift = lift1
 
 buy_btn1 = Sprite(68, 209, 35, 25, pygame.image.load("buy_btn.png"))
@@ -464,6 +473,7 @@ while game:
     if menu:
         play_btn.draw()
         shop_btn.draw()
+        history_btn.draw()
         mus.draw()
         logo.draw()
         score_txt = font.render(f"Coins: {score}", True, (200, 255, 200))
@@ -474,6 +484,21 @@ while game:
         QTM_btn.draw()
         for btn in buybtns:
             btn.draw()
+    
+    if PlayHistory:
+        print(i)
+        if i < 100:
+            hist1.draw()
+        elif i >= 100 and i < 150:
+            hist2.draw()
+        elif i >= 150 and i < 200:
+            hist3.draw()
+        elif i >= 200 and i < 250:
+            hist4.draw()
+        elif i >= 250 and i < 300:
+            hist5.draw()
+        else:
+            PlayHistory = False
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -529,6 +554,10 @@ while game:
                 data["costumes"]["White"] = "Yes"
             if buy_btn5.rect.collidepoint(x, y) and CanBuyTurquoise:
                 data["costumes"]["Turquoise"] = "Yes"
+            
+            if history_btn.rect.collidepoint(x, y):
+                i = 0
+                PlayHistory = True
             
             if mus.rect.collidepoint(x, y):
                 if music == 0:
