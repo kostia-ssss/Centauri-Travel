@@ -190,11 +190,12 @@ play_btn = Sprite(wind_w/2-70, wind_h/2-50, 140, 100, pygame.image.load("Play_bt
 shop_btn = Sprite(wind_w/2-70, wind_h/2+100, 140, 100, pygame.image.load("Shop_btn.png"))
 QTM_btn = Sprite(0, 0, 70, 50, pygame.image.load("Quit_to_menu_btn.png"))
 menu_btn = Sprite(wind_w-60, 0, 60, 30, pygame.image.load("Menu_btn.png"))
-lift = Lift(100, 30, plat_img, 3, 570, 570, 70, 410, "vertical")
+lift1 = Lift(100, 30, plat_img, 3, 570, 570, 70, 410, "vertical")
 lift2 = Lift(100, 30, plat_img, 1, 570, 570, 100, 304, "vertical")
 btn = Sprite(391, 333, 30, 30, pygame.image.load("button.png"))
 logo = Sprite(156, 67, 400, 70, pygame.image.load("logo.png"))
 shop_shablon = Sprite(0, 0, wind_w, wind_h, pygame.image.load("shop.png"))
+lift = lift1
 
 buy_btn1 = Sprite(68, 209, 35, 25, pygame.image.load("buy_btn.png"))
 buy_btn2 = Sprite(242, 207, 35, 25, pygame.image.load("buy_btn.png"))
@@ -273,6 +274,23 @@ def save():
     with open("data.json", "w", encoding="utf-8") as file:
         json.dump(data, file)
 
+def collision(plat):
+    global jump, CanJump
+    if jump >= 0:
+        jump = 1
+        player.rect.y += 15
+    elif jump < 0:
+        CanJump = False
+        while plat.rect.colliderect(player.rect):
+            player.rect.y -= 1
+        CanJump = True
+
+def draw_plats(list_of_plats):
+    for plat in list_of_plats:
+        plat.draw()
+        if plat.rect.colliderect(player.rect):
+            collision(plat)
+
 start_time = time.time()
 cur_time = start_time
 
@@ -315,8 +333,6 @@ while game:
         start.draw()
         finish.draw()
         btn.draw()
-        lift2.draw()
-        lift2.move()
         player.rect.y -= jump
         
         for b in bullets:
@@ -333,6 +349,9 @@ while game:
                 json.dump(data, file)
             reset()
         
+        if player.rect.colliderect(lift.rect):
+            collision(lift)
+        
         if player.rect.colliderect(enemy_lvl2.rect):
             # HP.pop(hp-1)
             # hp -= 1
@@ -344,17 +363,7 @@ while game:
         if lvl == 1:
             tutorial_txt = tutorial_txt1
             window.blit(tutorial_txt2, (357, 330))
-            for plat in plats_lvl1:
-                plat.draw()
-                if plat.rect.colliderect(player.rect):
-                    if jump >= 0:
-                        jump = 1
-                        player.rect.y += 15
-                    elif jump < 0:
-                        CanJump = False
-                        while plat.rect.colliderect(player.rect):
-                            player.rect.y -= 1
-                        CanJump = True
+            draw_plats(plats_lvl1)
         elif lvl == 2:
             tutorial_txt = tutorial_txt3
             if Open == False:
@@ -362,17 +371,7 @@ while game:
                 key.draw()
             finish.rect.x = 110
             finish.rect.y = 125
-            for plat in plats_lvl2:
-                plat.draw()
-                if plat.rect.colliderect(player.rect):
-                    if jump >= 0:
-                        jump = 1
-                        player.rect.y += 15
-                    elif jump < 0:
-                        CanJump = False
-                        while plat.rect.colliderect(player.rect):
-                            player.rect.y -= 1
-                        CanJump = True
+            draw_plats(plats_lvl2)
             
             enemy_lvl2.rect.y = 420
             enemy_lvl2.draw()
@@ -383,17 +382,7 @@ while game:
             finish.rect.x = wind_w - 100
             finish.rect.y = 400
             enemy_lvl2.rect.y = 10000
-            for plat in plats_lvl3:
-                plat.draw()
-                if plat.rect.colliderect(player.rect):
-                    if jump >= 0:
-                        jump = 1
-                        player.rect.y += 15
-                    elif jump < 0:
-                        CanJump = False
-                        while plat.rect.colliderect(player.rect):
-                            player.rect.y -= 1
-                        CanJump = True
+            draw_plats(plats_lvl3)
             # for l in lasers_lvl3:
             #     l.draw()
             #     l.anim()
@@ -406,19 +395,10 @@ while game:
         elif lvl == 4:
             finish.rect.x = 44
             finish.rect.y = 21
+            lift = lift1
             lift.draw()
             lift.move()
-            for plat in plats_lvl4:
-                plat.draw()
-                if plat.rect.colliderect(player.rect) or player.rect.colliderect(lift.rect):
-                    if jump >= 0:
-                        jump = 1
-                        player.rect.y += 15
-                    elif jump < 0:
-                        CanJump = False
-                        while plat.rect.colliderect(player.rect):
-                            player.rect.y -= 1
-                        CanJump = True
+            draw_plats(plats_lvl4)
         
         elif lvl == 5:
             finish.rect.x = 630
@@ -431,36 +411,30 @@ while game:
             door.rect.y = 370
             btn.rect.x = 86
             btn.rect.y = 95
+            lift = lift2
+            
+            lift.draw()
+            lift.move()
             if Open == False:
                 door.draw()
                 key.draw()
-            for plat in plats_lvl5:
-                plat.draw()
-                if plat.rect.colliderect(player.rect) or player.rect.colliderect(lift2.rect):
-                    if jump >= 0:
-                        jump = 1
-                        player.rect.y += 15
-                    elif jump < 0:
-                        CanJump = False
-                        while plat.rect.colliderect(player.rect):
-                            player.rect.y -= 1
-                        CanJump = True
+            draw_plats(plats_lvl5)
             
-                portal1.draw()
-                portal2.draw()
-                if player.rect.colliderect(portal1.rect):
-                    #portal1.teleport()
-                    jump = 0
-                    player.rect.x = portal2.rect.x - 30 * randint(-1, 1)
-                    player.rect.y = portal2.rect.y
-                elif player.rect.colliderect(portal2.rect):
-                    #portal2.teleport()
-                    jump = 0
-                    player.rect.x = portal1.rect.x - 30 * randint(-1, 1)
-                    player.rect.y = portal1.rect.y
-                    
-                if player.rect.colliderect(key.rect):
-                    Open = True
+            portal1.draw()
+            portal2.draw()
+            if player.rect.colliderect(portal1.rect):
+                #portal1.teleport()
+                jump = 0
+                player.rect.x = portal2.rect.x - 30
+                player.rect.y = portal2.rect.y
+            elif player.rect.colliderect(portal2.rect):
+                #portal2.teleport()
+                jump = 0
+                player.rect.x = portal1.rect.x - 30
+                player.rect.y = portal1.rect.y
+                
+            if player.rect.colliderect(key.rect):
+                Open = True
     
     if music == 0:
         pygame.mixer.music.pause()
