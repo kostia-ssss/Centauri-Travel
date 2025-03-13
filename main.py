@@ -253,7 +253,7 @@ small_font = pygame.font.SysFont("Century Gothic", 15)
 tutorial_txt1 = small_font.render("Press A & D to move", True, (255, 255, 255))
 tutorial_txt2 = small_font.render("Press SPACE to jump", True, (255, 255, 255))
 tutorial_txt3 = small_font.render("Don't touch the enemy!", True, (255, 255, 255))
-no_money = bold_font.render("You haven't got any money!", True, (255, 0, 0))
+lose = bold_font.render("You lose(", True, (255, 0, 0))
 tutorial_txt = tutorial_txt1
 
 portal2 = Portal(283, 256, 20, 50, pygame.image.load("Portal.png"), None)
@@ -308,11 +308,12 @@ hp = len(HP)
 game = True
 menu = True
 shop = False
+losing = False
 while game:
     i += 1
     mus = Sprite(21, 17, 100, 60, pygame.image.load(f"music{music}.png"))
     window.blit(bg, (0, 0))
-    if not menu:
+    if not menu and not losing:
         player.img = pygame.image.load(f"pl_anim/{costume}_idle1.png")
         player.img = pygame.transform.scale(player.img, (player.rect.w, player.rect.h))
         if patrons < 70:
@@ -348,9 +349,6 @@ while game:
             b.draw()
             b.move()
         
-        for h in HP:
-            h.draw()
-        
         if player.rect.colliderect(finish.rect):
             lvl += 1
             with open("data.json", "w", encoding="utf-8") as file:
@@ -362,8 +360,12 @@ while game:
             collision(lift)
         
         if player.rect.colliderect(enemy_lvl2.rect):
-            # HP.pop(hp-1)
-            # hp -= 1
+            if hp > 1:
+                HP.pop(hp-1)
+                hp -= 1
+            else:
+                losing = True
+            print(hp)
             reset()
         
         if player.rect.colliderect(btn.rect):
@@ -470,6 +472,10 @@ while game:
         CanBuyTurquoise = True
         save()
     
+    for h in HP:
+        if losing == False:
+            h.draw()
+    
     if menu:
         play_btn.draw()
         shop_btn.draw()
@@ -484,6 +490,9 @@ while game:
         QTM_btn.draw()
         for btn in buybtns:
             btn.draw()
+    
+    if losing:
+        window.blit(lose, (200, 200))
     
     if PlayHistory:
         print(i)
@@ -522,6 +531,12 @@ while game:
         elif keys[pygame.K_6] and data["costumes"]["Turquoise"] == "Yes":
             costume = "Turquoise"
             save_costume(costume)
+        elif keys[pygame.K_r] and losing == True:
+            HP = [Sprite(100, 0, 25, 25, pygame.image.load("heart.png")),
+                Sprite(135, 0, 25, 25, pygame.image.load("heart.png")),
+                Sprite(170, 0, 25, 25, pygame.image.load("heart.png"))]
+            losing = False
+            hp = 3
         
         if event.type == pygame.MOUSEBUTTONDOWN:
             x, y = event.pos
