@@ -14,6 +14,7 @@ patrons = 70
 CanJump = True
 Open = False
 On = False
+Dangerous = True
 CanBuyYellow = False
 CanBuyWhite = False
 CanBuyGreen = False
@@ -116,13 +117,15 @@ class Laser(Sprite):
         self.delay = delay
     
     def anim(self):
-        global a
+        global a, Dangerous
         a = randint(1, 7)
         if cur_time%self.delay != 0:
             self.img = pygame.image.load(f"Lasers/Laser{a}.png")
+            Dangerous = True
             self.img = pygame.transform.scale(self.img, (self.rect.w, self.rect.h))
         else:
             self.img = pygame.image.load("Lasers/Laser_off.png")
+            Dangerous = False
             self.img = pygame.transform.scale(self.img, (self.rect.w, self.rect.h))
 
 class Lift(Sprite):
@@ -262,10 +265,10 @@ portal1 = Portal(105, 256, 20, 50, pygame.image.load("Portal.png"), None)
 portal2.pair = portal1
 portal1.pair = portal2
 
-# lasers_lvl3 = [Laser(133, 350, 20, 100, pygame.image.load("Laser1.png"), 2),
-#                Laser(224, 350, 20, 100, pygame.image.load("Laser1.png"), 2),
-#                Laser(367, 350, 20, 100, pygame.image.load("Laser1.png"), 2),
-#                Laser(513, 350, 20, 100, pygame.image.load("Laser1.png"), 2)]
+lasers_lvl3 = [Laser(133, 350, 20, 100, pygame.image.load("Lasers/Laser1.png"), 2),
+               Laser(224, 350, 20, 100, pygame.image.load("Lasers/Laser1.png"), 2),
+               Laser(367, 350, 20, 100, pygame.image.load("Lasers/Laser1.png"), 2),
+               Laser(513, 350, 20, 100, pygame.image.load("Lasers/Laser1.png"), 2)]
 
 def reset():
     global Open, On
@@ -394,14 +397,19 @@ while game:
             finish.rect.y = 400
             enemy_lvl2.rect.y = 10000
             draw_plats(plats_lvl3)
-            # for l in lasers_lvl3:
-            #     l.draw()
-            #     l.anim()
-            #     if player.rect.colliderect(l.rect):
-            #         if l.img == laser_off_img:
-            #             print("hhhh")
-            #         else:
-            #             reset()
+            for l in lasers_lvl3:
+                l.draw()
+                l.anim()
+                if player.rect.colliderect(l.rect):
+                    if Dangerous == False:
+                        pass
+                    else:
+                        if hp > 1:
+                            HP.pop(hp-1)
+                            hp -= 1
+                        else:
+                            losing = True
+                        reset()
         
         elif lvl == 4:
             finish.rect.x = 44
