@@ -57,14 +57,21 @@ class Sprite:
         window.blit(self.img , (self.rect.x, self.rect.y))
         
 class Player(Sprite):
-    def __init__(self , x , y , w , h , img1, img2 , speed, jumpforce):
+    def __init__(self , x , y , w , h , img1, img2 , speed, jumpforce, images):
         super().__init__(x, y, w, h, img1)
         global costume
         self.img_r = self.img
         self.img_l = pygame.transform.scale(img2, (w, h))
         self.speed = speed
         self.jumpforce = jumpforce
-        self.state = "idle"
+        self.images = []
+        for im in images:
+            im = pygame.transform.scale(im, (w, h))
+            self.images.append(im)
+            print(self.images)
+        self.state = "stand"
+        self.im_num = 0
+        self.anim_timer = 10
     
     def move(self):
         global jump, CanJump
@@ -97,6 +104,21 @@ class Player(Sprite):
                 self.rect.y -= 1
         else:
             jump -= 1
+    
+    def animate(self):
+        print(self.im_num)
+        if self.anim_timer == 0:
+            if self.state == "walk":
+                if self.im_num > 4 or self.im_num < 2:
+                    self.im_num = 2
+            elif self.state == "stand":
+                if self.im_num > 1:
+                    self.im_num = 0
+            self.image = self.images[self.im_num]
+            self.im_num += 1
+            self.anim_timer = 10
+        else:
+            self.anim_timer -= 1
     
     def fire(self, pos):
         bullets.append(Bullet(self.rect.centerx - 13,self.rect.y, 10, 10, pygame.image.load("bullet.png"), 15, pos))
@@ -183,7 +205,9 @@ key_img = pygame.image.load("key.png")
 laser_off_img = pygame.image.load("Lasers/Laser_off.png")
 coin_img = pygame.image.load("coin.png")
 
-player = Player(50, 400, 30, 50, p_img1, p_img2, 5, 20)
+images = [pygame.image.load("pl_anim/Player_idle1.png"), pygame.image.load("pl_anim/Player_idle2.png"), pygame.image.load("pl_anim/Player_walk1.png"), pygame.image.load("pl_anim/Player_walk2.png"), pygame.image.load("pl_anim/Player_walk3.png")]
+
+player = Player(50, 400, 30, 50, p_img1, p_img2, 5, 20, images)
 ground = Sprite(0, wind_h-50, wind_w, 50, plat_img)
 start = Sprite(50, 400, 20, 50, pygame.image.load("Portal.png"))
 finish = Sprite(150, 90, 20, 50, pygame.image.load("Portal.png"))
@@ -342,6 +366,7 @@ while game:
         window.blit(tutorial_txt, (122, 349))
         player.draw()
         player.move()
+        player.animate()
         menu_btn.draw()
         ground.draw()
         start.draw()
