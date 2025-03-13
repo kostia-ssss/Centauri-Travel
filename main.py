@@ -73,14 +73,14 @@ class Player(Sprite):
             self.img = self.img_l
             if self.rect.x > 0:
                 self.rect.x -= self.speed
-                # if any(self.rect.colliderect(p.rect) for p in plats_lvl2) or self.rect.colliderect(door.rect):
-                #     self.rect.x += self.speed
+                if any(self.rect.colliderect(p.rect) for p in plats_lvl2):
+                    self.rect.x += self.speed
         if keys[pygame.K_d]:
             self.img = self.img_r
             if self.rect.right < wind_w:
                 self.rect.x += self.speed
-                # if any(self.rect.colliderect(p.rect) for p in plats_lvl2) or self.rect.colliderect(door.rect):
-                #     self.rect.x -= self.speed
+                if any(self.rect.colliderect(p.rect) for p in plats_lvl2):
+                    self.rect.x -= self.speed
 
         if keys[pygame.K_a] or keys[pygame.K_d]:
             self.state = "walk"
@@ -257,6 +257,7 @@ tutorial_txt1 = small_font.render("Press A & D to move", True, (255, 255, 255))
 tutorial_txt2 = small_font.render("Press SPACE to jump", True, (255, 255, 255))
 tutorial_txt3 = small_font.render("Don't touch the enemy!", True, (255, 255, 255))
 lose = bold_font.render("You lose(", True, (255, 0, 0))
+reset_txt = bold_font.render("Press R to reset", True, (255, 255, 255))
 tutorial_txt = tutorial_txt1
 
 portal2 = Portal(283, 256, 20, 50, pygame.image.load("Portal.png"), None)
@@ -501,6 +502,7 @@ while game:
     
     if losing:
         window.blit(lose, (200, 200))
+        window.blit(reset_txt, (200, 300))
     
     if PlayHistory:
         print(i)
