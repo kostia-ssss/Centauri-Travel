@@ -330,7 +330,7 @@ lasers_lvl3 = [Laser(133, 350, 20, 100, pygame.image.load("Lasers/Laser1.png"), 
                Laser(513, 350, 20, 100, pygame.image.load("Lasers/Laser1.png"), 2)]
 
 def reset():
-    global Open, On
+    global Open, On, EnemyAlive
     player.rect.x = start.rect.x
     player.rect.y = start.rect.y
     Open = False
