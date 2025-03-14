@@ -3,6 +3,7 @@ pygame.init()
 from random import randint
 import time
 import json
+import math
 
 # settings
 FPS = 60
@@ -14,6 +15,7 @@ patrons = 70
 CanJump = True
 Open = False
 On = False
+EnemyAlive = True
 Dangerous = True
 CanBuyYellow = False
 CanBuyWhite = False
@@ -80,13 +82,13 @@ class Player(Sprite):
             self.img = self.img_l
             if self.rect.x > 0:
                 self.rect.x -= self.speed
-                if any(self.rect.colliderect(p.rect) for p in plats_lvl2):
+                if any(self.rect.colliderect(p.rect) and p.rect.h > 50 for p in plats_lvl2):
                     self.rect.x += self.speed
         if keys[pygame.K_d]:
             self.img = self.img_r
             if self.rect.right < wind_w:
                 self.rect.x += self.speed
-                if any(self.rect.colliderect(p.rect) for p in plats_lvl2):
+                if any(self.rect.colliderect(p.rect) and p.rect.h > 50 for p in plats_lvl2):
                     self.rect.x -= self.speed
 
         if keys[pygame.K_a] or keys[pygame.K_d]:
@@ -105,20 +107,20 @@ class Player(Sprite):
         else:
             jump -= 1
     
-    def animate(self):
-        print(self.im_num)
-        if self.anim_timer == 0:
-            if self.state == "walk":
-                if self.im_num > 4 or self.im_num < 2:
-                    self.im_num = 2
-            elif self.state == "stand":
-                if self.im_num > 1:
-                    self.im_num = 0
-            self.image = self.images[self.im_num]
-            self.im_num += 1
-            self.anim_timer = 10
-        else:
-            self.anim_timer -= 1
+    # def animate(self):
+    #     print(self.im_num)
+    #     if self.anim_timer == 0:
+    #         if self.state == "walk":
+    #             if self.im_num > 4 or self.im_num < 2:
+    #                 self.im_num = 2
+    #         elif self.state == "stand":
+    #             if self.im_num > 1:
+    #                 self.im_num = 0
+    #         self.image = self.images[self.im_num]
+    #         self.im_num += 1
+    #         self.anim_timer = 10
+    #     else:
+    #         self.anim_timer -= 1
     
     def fire(self, pos):
         bullets.append(Bullet(self.rect.centerx - 13,self.rect.y, 10, 10, pygame.image.load("bullet.png"), 15, pos))
@@ -132,6 +134,37 @@ class Enemy(Sprite):
         self.rect.x += self.speed
         if self.rect.x > 500 or self.rect.x < 300:
             self.speed *= -1
+
+class UltraEnemy(Sprite):
+    def __init__(self , x , y , w , h , img1 , hor_speed, vert_speed, len1, len2):
+        super().__init__(x, y, w, h, img1)
+        self.speed = hor_speed
+        self.hor_speed = hor_speed
+        self.vert_speed = vert_speed
+        self.len1 = len1
+        self.len2 = len2
+        self.dx = 0
+        self.dy = 0
+        self.hor = True
+        self.vert = False
+    
+    def move(self):
+        if self.hor:
+            self.rect.x += self.hor_speed
+            self.dx += abs(self.hor_speed)
+            if self.dx > self.len1:
+                self.vert = True
+                self.hor = False
+                self.hor_speed *= -1
+                self.dx = 0
+        if self.vert:
+            self.rect.y += self.vert_speed
+            self.dy += abs(self.vert_speed)
+            if self.dy > self.len2:
+                self.vert = False
+                self.hor = True
+                self.vert_speed *= -1
+                self.dy = 0
 
 class Laser(Sprite):
     def __init__(self , x , y , w , h , img1 , delay):
@@ -224,6 +257,7 @@ lift2 = Lift(100, 30, plat_img, 1, 570, 570, 100, 304, "vertical")
 btn = Sprite(391, 333, 30, 30, pygame.image.load("button.png"))
 logo = Sprite(156, 67, 400, 70, pygame.image.load("logo.png"))
 shop_shablon = Sprite(0, 0, wind_w, wind_h, pygame.image.load("shop.png"))
+new_enemy = UltraEnemy(200, 200, 100, 100, pygame.image.load("New_enemy.png"), 1, 1, 100, 100)
 
 hist1 = Sprite(0, 0, wind_w, wind_h, pygame.image.load("kat_scena/1.png"))
 hist2 = Sprite(0, 0, wind_w, wind_h, pygame.image.load("kat_scena/2.png"))
@@ -301,6 +335,7 @@ def reset():
     player.rect.y = start.rect.y
     Open = False
     On = False
+    EnemyAlive = True
 
 def save_costume(costume):
     with open("data.json", "w", encoding="utf-8") as file:
@@ -325,7 +360,7 @@ def collision(plat):
 def draw_plats(list_of_plats):
     for plat in list_of_plats:
         plat.draw()
-        if plat.rect.colliderect(player.rect):
+        if player.rect.colliderect(plat.rect):
             collision(plat)
 
 start_time = time.time()
@@ -366,17 +401,23 @@ while game:
         window.blit(tutorial_txt, (122, 349))
         player.draw()
         player.move()
-        player.animate()
+        # player.animate()
         menu_btn.draw()
         ground.draw()
         start.draw()
         finish.draw()
         btn.draw()
+        if EnemyAlive:
+            new_enemy.draw()
+            new_enemy.move()
         player.rect.y -= jump
         
         for b in bullets:
             b.draw()
             b.move()
+            if b.rect.colliderect(new_enemy.rect) and EnemyAlive:
+                EnemyAlive = False
+                bullets.remove(b)
         
         if player.rect.colliderect(finish.rect):
             lvl += 1
@@ -396,6 +437,18 @@ while game:
                 losing = True
             print(hp)
             reset()
+        
+        if player.rect.colliderect(new_enemy.rect):
+            if EnemyAlive:
+                if hp > 1:
+                    HP.pop(hp-1)
+                    hp -= 1
+                else:
+                    losing = True
+                print(hp)
+                reset()
+            else:
+                pass
         
         if player.rect.colliderect(btn.rect):
             On = True
@@ -418,6 +471,8 @@ while game:
             enemy_lvl2.move()
             if player.rect.colliderect(key.rect):
                 Open = True
+            if player.rect.colliderect(door.rect) and not Open:
+                player.rect.x += player.speed
         elif lvl == 3:
             finish.rect.x = wind_w - 100
             finish.rect.y = 400
