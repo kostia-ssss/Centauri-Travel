@@ -258,6 +258,7 @@ btn = Sprite(391, 333, 30, 30, pygame.image.load("button.png"))
 logo = Sprite(156, 67, 400, 70, pygame.image.load("logo.png"))
 shop_shablon = Sprite(0, 0, wind_w, wind_h, pygame.image.load("shop.png"))
 new_enemy = UltraEnemy(200, 200, 100, 100, pygame.image.load("New_enemy.png"), 1, 1, 100, 100)
+close_btn = Sprite(wind_w-60, 0, 60, 30, pygame.image.load("Close_btn.png"))
 
 hist1 = Sprite(0, 0, wind_w, wind_h, pygame.image.load("kat_scena/1.png"))
 hist2 = Sprite(0, 0, wind_w, wind_h, pygame.image.load("kat_scena/2.png"))
@@ -571,6 +572,7 @@ while game:
         history_btn.draw()
         mus.draw()
         logo.draw()
+        close_btn.draw()
         score_txt = font.render(f"Coins: {score}", True, (200, 255, 200))
         window.blit(score_txt, (0, 0))
     
@@ -648,6 +650,8 @@ while game:
                     json.dump(data, file)
             if shop_btn.rect.collidepoint(x, y):
                 shop = True
+            if close_btn.rect.collidepoint(x, y):
+                game = False
             
             if buy_btn1.rect.collidepoint(x, y) and CanBuyGreen == True:
                 data["costumes"]["Green"] = "Yes"
