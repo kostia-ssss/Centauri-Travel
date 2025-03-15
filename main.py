@@ -74,6 +74,7 @@ class Player(Sprite):
         self.jump_count = 10
         self.CanJump = True
         self.isJump = False
+        self.isLift = False
         for im in imgs:
             im = pygame.transform.scale(im, (w, h))
             self.images.append(im)
@@ -105,7 +106,7 @@ class Player(Sprite):
             self.state = "idle"
     
     def jumping(self):
-        print(self.jump_count)
+        print(self.CanJump)
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE] and self.CanJump:
             self.isJump = True
@@ -122,9 +123,15 @@ class Player(Sprite):
         else:
             x, y = self.rect.x, self.rect.y
             self.rect.y += 10
-            if self.check_collisions(plats):
+            if self.check_collisions(plats) or self.rect.colliderect(lift.rect):
                 self.CanJump = True
                 self.rect.x, self.rect.y = x, y
+            if self.rect.colliderect(lift.rect):
+                self.isLift = True
+            if self.isLift:
+                if not self.isJump:
+                    self.rect.bottom = lift.rect.y
+                self.isLift = False
             
     
     def check_collisions(self, plats):
