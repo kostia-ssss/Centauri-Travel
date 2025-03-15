@@ -116,6 +116,7 @@ class Player(Sprite):
         else:
             jump -= 1
     
+    
     def change_costume(self):
         if costume == "Player":
             imgs = self.imgs
