@@ -59,7 +59,7 @@ class Sprite:
         window.blit(self.img , (self.rect.x, self.rect.y))
         
 class Player(Sprite):
-    def __init__(self , x , y , w , h , img1, img2 , speed, jumpforce, images):
+    def __init__(self , x , y , w , h , img1, img2 , speed, jumpforce, imgs, yel_imgs, wht_imgs, turq_imgs, purp_imgs, grn_imgs):
         super().__init__(x, y, w, h, img1)
         global costume
         self.img_r = self.img
@@ -67,10 +67,18 @@ class Player(Sprite):
         self.speed = speed
         self.jumpforce = jumpforce
         self.images = []
-        for im in images:
+        self.imgs = imgs
+        self.yel_imgs = yel_imgs
+        self.wht_imgs = wht_imgs
+        self.turq_imgs = turq_imgs
+        self.purp_imgs = purp_imgs
+        self.grn_imgs = grn_imgs
+        print(imgs)
+        for im in imgs:
             im = pygame.transform.scale(im, (w, h))
             self.images.append(im)
             print(self.images)
+        
         self.state = "stand"
         self.im_num = 0
         self.anim_timer = 10
@@ -79,13 +87,13 @@ class Player(Sprite):
         global jump, CanJump
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a]:
-            self.img = self.img_l
+            # self.img = self.img_l
             if self.rect.x > 0:
                 self.rect.x -= self.speed
                 if any(self.rect.colliderect(p.rect) and p.rect.h > 50 for p in plats_lvl2):
                     self.rect.x += self.speed
         if keys[pygame.K_d]:
-            self.img = self.img_r
+            # self.img = self.img_r
             if self.rect.right < wind_w:
                 self.rect.x += self.speed
                 if any(self.rect.colliderect(p.rect) and p.rect.h > 50 for p in plats_lvl2):
@@ -107,20 +115,35 @@ class Player(Sprite):
         else:
             jump -= 1
     
-    # def animate(self):
-    #     print(self.im_num)
-    #     if self.anim_timer == 0:
-    #         if self.state == "walk":
-    #             if self.im_num > 4 or self.im_num < 2:
-    #                 self.im_num = 2
-    #         elif self.state == "stand":
-    #             if self.im_num > 1:
-    #                 self.im_num = 0
-    #         self.image = self.images[self.im_num]
-    #         self.im_num += 1
-    #         self.anim_timer = 10
-    #     else:
-    #         self.anim_timer -= 1
+    def change_costume(self):
+        if costume == "Player":
+            imgs = self.imgs
+        if costume == "Yellow":
+            imgs = self.yel_imgs
+        if costume == "White":
+            imgs = self.wht_imgs
+        if costume == "Turquoise":
+            imgs = self.turq_imgs
+        if costume == "Green":
+            imgs = self.grn_imgs
+        if costume == "Purple":
+            imgs = self.purp_imgs
+
+        return imgs
+    
+    def animate(self, imgs):
+        if self.anim_timer == 0:
+            if self.state == "walk":
+                if self.im_num > 2 or self.im_num < 1:
+                    self.im_num = 1
+            elif self.state == "idle":
+                if self.im_num > 0:
+                    self.im_num = 0
+            self.img = imgs[self.im_num]
+            self.im_num += 1
+            self.anim_timer = 10
+        else:
+            self.anim_timer -= 1
     
     def fire(self, pos):
         bullets.append(Bullet(self.rect.centerx - 13,self.rect.y, 10, 10, pygame.image.load("bullet.png"), 15, pos))
@@ -238,9 +261,31 @@ key_img = pygame.image.load("key.png")
 laser_off_img = pygame.image.load("Lasers/Laser_off.png")
 coin_img = pygame.image.load("coin.png")
 
-images = [pygame.image.load("pl_anim/Player_idle1.png"), pygame.image.load("pl_anim/Player_idle2.png"), pygame.image.load("pl_anim/Player_walk1.png"), pygame.image.load("pl_anim/Player_walk2.png"), pygame.image.load("pl_anim/Player_walk3.png")]
+images = [pygame.image.load("pl_anim/Player_idle1.png"),
+          pygame.image.load("pl_anim/Player_walk2.png"),
+          pygame.image.load("pl_anim/Player_walk3.png")]
 
-player = Player(50, 400, 30, 50, p_img1, p_img2, 5, 20, images)
+Wimages = [pygame.image.load("pl_anim/White_idle1.png"),
+          pygame.image.load("pl_anim/White_walk2.png"),
+          pygame.image.load("pl_anim/White_walk3.png")]
+
+Yimages = [pygame.image.load("pl_anim/Yellow_idle1.png"),
+          pygame.image.load("pl_anim/Yellow_walk2.png"),
+          pygame.image.load("pl_anim/Yellow_walk3.png")]
+
+Gimages = [pygame.image.load("pl_anim/Green_idle1.png"),
+          pygame.image.load("pl_anim/Green_walk2.png"),
+          pygame.image.load("pl_anim/Green_walk3.png")]
+
+Timages = [pygame.image.load("pl_anim/Turquoise_idle1.png"),
+          pygame.image.load("pl_anim/Turquoise_walk2.png"),
+          pygame.image.load("pl_anim/Turquoise_walk3.png")]
+
+Pimages = [pygame.image.load("pl_anim/Purple_idle1.png"),
+          pygame.image.load("pl_anim/Purple_walk2.png"),
+          pygame.image.load("pl_anim/Purple_walk3.png")]
+
+player = Player(50, 400, 30, 50, p_img1, p_img2, 5, 20, images, Yimages, Wimages, Timages, Pimages, Gimages)
 ground = Sprite(0, wind_h-50, wind_w, 50, plat_img)
 start = Sprite(50, 400, 20, 50, pygame.image.load("Portal.png"))
 finish = Sprite(150, 90, 20, 50, pygame.image.load("Portal.png"))
@@ -257,8 +302,8 @@ lift2 = Lift(100, 30, plat_img, 1, 570, 570, 100, 304, "vertical")
 btn = Sprite(391, 333, 30, 30, pygame.image.load("button.png"))
 logo = Sprite(156, 67, 400, 70, pygame.image.load("logo.png"))
 shop_shablon = Sprite(0, 0, wind_w, wind_h, pygame.image.load("shop.png"))
-new_enemy = UltraEnemy(200, 200, 100, 100, pygame.image.load("New_enemy.png"), 1, 1, 100, 100)
-close_btn = Sprite(wind_w-60, 0, 60, 30, pygame.image.load("Close_btn.png"))
+new_enemy = UltraEnemy(200, 200, 50, 50, pygame.image.load("New_enemy.png"), 5, 5, 100, 100)
+close_btn = Sprite(wind_w-60, 30, 60, 30, pygame.image.load("Close_btn.png"))
 
 hist1 = Sprite(0, 0, wind_w, wind_h, pygame.image.load("kat_scena/1.png"))
 hist2 = Sprite(0, 0, wind_w, wind_h, pygame.image.load("kat_scena/2.png"))
@@ -378,8 +423,8 @@ while game:
     mus = Sprite(21, 17, 100, 60, pygame.image.load(f"music{music}.png"))
     window.blit(bg, (0, 0))
     if not menu and not losing:
-        player.img = pygame.image.load(f"pl_anim/{costume}_idle1.png")
-        player.img = pygame.transform.scale(player.img, (player.rect.w, player.rect.h))
+        # player.img = pygame.image.load(f"pl_anim/{costume}_idle1.png")
+        # player.img = pygame.transform.scale(player.img, (player.rect.w, player.rect.h))
         if patrons < 70:
             patrons += 0.01
         mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -402,7 +447,8 @@ while game:
         window.blit(tutorial_txt, (122, 349))
         player.draw()
         player.move()
-        # player.animate()
+        imgs = player.change_costume()
+        player.animate(imgs)
         menu_btn.draw()
         ground.draw()
         start.draw()
@@ -634,7 +680,7 @@ while game:
             x, y = event.pos
             if event.button == 1:
                 pos = event.pos
-                if patrons > 0:
+                if patrons > 0 and not menu:
                     player.fire(pos)
                     patrons -= 1
             print(x)
