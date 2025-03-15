@@ -103,7 +103,8 @@ class Player(Sprite):
             self.state = "walk"
         else:
             self.state = "idle"
-        
+    
+    def jump(self):
         if keys[pygame.K_SPACE] and CanJump == True:
             jump = self.jumpforce
             CanJump = False
@@ -128,7 +129,13 @@ class Player(Sprite):
             imgs = self.grn_imgs
         if costume == "Purple":
             imgs = self.purp_imgs
-
+        
+        for im in imgs:
+            im = pygame.transform.scale(im, (self.rect.w, self.rect.h))
+            imgs.append(im)
+            imgs.pop(0)
+        print(imgs)    
+        
         return imgs
     
     def animate(self, imgs):
@@ -392,22 +399,9 @@ def save():
     with open("data.json", "w", encoding="utf-8") as file:
         json.dump(data, file)
 
-def collision(plat):
-    global jump, CanJump
-    if jump >= 0:
-        jump = 1
-        player.rect.y += 15
-    elif jump < 0:
-        CanJump = False
-        while plat.rect.colliderect(player.rect):
-            player.rect.y -= 1
-        CanJump = True
-
 def draw_plats(list_of_plats):
     for plat in list_of_plats:
         plat.draw()
-        if player.rect.colliderect(plat.rect):
-            collision(plat)
 
 start_time = time.time()
 cur_time = start_time
@@ -473,8 +467,8 @@ while game:
                 json.dump(data, file)
             reset()
         
-        if player.rect.colliderect(lift.rect):
-            collision(lift)
+        # if player.rect.colliderect(lift.rect):
+        #     collision(lift)
         
         if player.rect.colliderect(enemy_lvl2.rect):
             if hp > 1:
