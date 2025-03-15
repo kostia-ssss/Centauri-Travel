@@ -7,12 +7,10 @@ import math
 
 # settings
 FPS = 60
-jump = 0
 a = 1
 i = 1
 music = 1
 patrons = 70
-CanJump = True
 Open = False
 On = False
 EnemyAlive = True
@@ -73,7 +71,9 @@ class Player(Sprite):
         self.turq_imgs = turq_imgs
         self.purp_imgs = purp_imgs
         self.grn_imgs = grn_imgs
-        print(imgs)
+        self.jump_count = 10
+        self.CanJump = True
+        self.isJump = False
         for im in imgs:
             im = pygame.transform.scale(im, (w, h))
             self.images.append(im)
@@ -84,38 +84,55 @@ class Player(Sprite):
         self.anim_timer = 10
     
     def move(self):
-        global jump, CanJump
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a]:
             # self.img = self.img_l
             if self.rect.x > 0:
                 self.rect.x -= self.speed
-                if any(self.rect.colliderect(p.rect) and p.rect.h > 50 for p in plats_lvl2):
+                if self.check_collisions(plats):
                     self.rect.x += self.speed
         if keys[pygame.K_d]:
             # self.img = self.img_r
             if self.rect.right < wind_w:
+                x, y = self.rect.x, self.rect.y
                 self.rect.x += self.speed
-                if any(self.rect.colliderect(p.rect) and p.rect.h > 50 for p in plats_lvl2):
-                    self.rect.x -= self.speed
+                if self.check_collisions(plats):
+                    self.rect.x, self.rect.y = x, y
 
         if keys[pygame.K_a] or keys[pygame.K_d]:
             self.state = "walk"
         else:
             self.state = "idle"
     
-    def jump(self):
-        if keys[pygame.K_SPACE] and CanJump == True:
-            jump = self.jumpforce
-            CanJump = False
-        elif self.rect.colliderect(ground.rect):
-            jump = 0
-            CanJump = True
-            while self.rect.colliderect(ground.rect):
-                self.rect.y -= 1
+    def jumping(self):
+        print(self.jump_count)
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_SPACE] and self.CanJump:
+            self.isJump = True
+            self.jump_count = self.jumpforce
+            self.CanJump = False
+        if self.isJump:
+            x, y = self.rect.x, self.rect.y
+            self.rect.y -= self.jump_count
+            self.jump_count -= 1
+            if self.jump_count <= 0:
+                self.isJump = False
+            if self.check_collisions(plats):
+                self.rect.x, self.rect.y = x, y
         else:
-            jump -= 1
+            x, y = self.rect.x, self.rect.y
+            self.rect.y += 10
+            if self.check_collisions(plats):
+                self.CanJump = True
+                self.rect.x, self.rect.y = x, y
+            
     
+    def check_collisions(self, plats):
+        if any(self.rect.colliderect(plat.rect) for plat in plats):
+            return True
+        else:
+            return False
+        
     
     def change_costume(self):
         if costume == "Player":
@@ -135,8 +152,7 @@ class Player(Sprite):
             im = pygame.transform.scale(im, (self.rect.w, self.rect.h))
             imgs.append(im)
             imgs.pop(0)
-        print(imgs)    
-        
+
         return imgs
     
     def animate(self, imgs):
@@ -294,7 +310,6 @@ Pimages = [pygame.image.load("pl_anim/Purple_idle1.png"),
           pygame.image.load("pl_anim/Purple_walk3.png")]
 
 player = Player(50, 400, 30, 50, p_img1, p_img2, 5, 20, images, Yimages, Wimages, Timages, Pimages, Gimages)
-ground = Sprite(0, wind_h-50, wind_w, 50, plat_img)
 start = Sprite(50, 400, 20, 50, pygame.image.load("Portal.png"))
 finish = Sprite(150, 90, 20, 50, pygame.image.load("Portal.png"))
 key = Sprite(500, 150, 100, 30, pygame.image.load("key.png"))
@@ -329,24 +344,10 @@ buy_btn5 = Sprite(68, 436, 35, 25, pygame.image.load("buy_btn.png"))
 
 buybtns = [buy_btn1, buy_btn2, buy_btn3, buy_btn4, buy_btn5]
 
-plats_lvl1 = [Sprite(480, 298, 100, 30, plat_img),
-              Sprite(290, 206, 100, 30, plat_img),
-              Sprite(125, 134, 100, 30, plat_img)]
-
-plats_lvl2 = [Sprite(292, 296, 100, 30, plat_img),
-              Sprite(483, 206, 100, 30, plat_img),
-              Sprite(0, 202, 227, 30, plat_img),
-              Sprite(0, 0, 227, 132, plat_img)]
-
-plats_lvl3 = [Sprite(0, 0, wind_w, wind_h-150, plat_img)]
-
-plats_lvl4 = [Sprite(362, 366, 100, 20, plat_img),
-              Sprite(0, 96, 486, 25, plat_img)]
-
-plats_lvl5 = [Sprite(190, 379, 100, 20, plat_img),
-              Sprite(549, 346, 200, 25, plat_img),
-              Sprite(0, 150, 150, 20, plat_img),
-              Sprite(150, 0, 20, 170, plat_img)]
+plats = [Sprite(480, 298, 100, 30, plat_img),
+        Sprite(290, 206, 100, 30, plat_img),
+        Sprite(125, 134, 100, 30, plat_img),
+        Sprite(0, wind_h-50, wind_w, 50, plat_img)]
 
 bullets = []
 
@@ -442,17 +443,19 @@ while game:
         window.blit(tutorial_txt, (122, 349))
         player.draw()
         player.move()
+        player.jumping()
         imgs = player.change_costume()
         player.animate(imgs)
         menu_btn.draw()
-        ground.draw()
         start.draw()
         finish.draw()
         btn.draw()
         if EnemyAlive:
             new_enemy.draw()
             new_enemy.move()
-        player.rect.y -= jump
+        
+        for p in plats:
+            p.draw()
         
         for b in bullets:
             b.draw()
@@ -496,17 +499,24 @@ while game:
             On = True
             
         if lvl == 1:
+            plats = [Sprite(480, 298, 100, 30, plat_img),
+                    Sprite(290, 206, 100, 30, plat_img),
+                    Sprite(125, 134, 100, 30, plat_img),
+                    Sprite(0, wind_h-50, wind_w, 50, plat_img)]
             tutorial_txt = tutorial_txt1
             window.blit(tutorial_txt2, (357, 330))
-            draw_plats(plats_lvl1)
         elif lvl == 2:
+            plats = [Sprite(292, 296, 100, 30, plat_img),
+                    Sprite(483, 206, 100, 30, plat_img),
+                    Sprite(0, 202, 227, 30, plat_img),
+                    Sprite(0, 0, 227, 132, plat_img),
+                    Sprite(0, wind_h-50, wind_w, 50, plat_img)]
             tutorial_txt = tutorial_txt3
             if Open == False:
                 door.draw()
                 key.draw()
             finish.rect.x = 110
             finish.rect.y = 125
-            draw_plats(plats_lvl2)
             
             enemy_lvl2.rect.y = 420
             enemy_lvl2.draw()
@@ -516,10 +526,11 @@ while game:
             if player.rect.colliderect(door.rect) and not Open:
                 player.rect.x += player.speed
         elif lvl == 3:
+            plats = [Sprite(0, 0, wind_w, wind_h-150, plat_img),
+                    Sprite(0, wind_h-50, wind_w, 50, plat_img)]
             finish.rect.x = wind_w - 100
             finish.rect.y = 400
             enemy_lvl2.rect.y = 10000
-            draw_plats(plats_lvl3)
             for l in lasers_lvl3:
                 l.draw()
                 l.anim()
@@ -535,14 +546,21 @@ while game:
                         reset()
         
         elif lvl == 4:
+            plats = [Sprite(362, 366, 100, 20, plat_img),
+                    Sprite(0, 96, 486, 25, plat_img),
+                    Sprite(0, wind_h-50, wind_w, 50, plat_img)]
             finish.rect.x = 44
             finish.rect.y = 21
             lift = lift1
             lift.draw()
             lift.move()
-            draw_plats(plats_lvl4)
         
         elif lvl == 5:
+            plats = [Sprite(190, 379, 100, 20, plat_img),
+                    Sprite(549, 346, 200, 25, plat_img),
+                    Sprite(0, 150, 150, 20, plat_img),
+                    Sprite(150, 0, 20, 170, plat_img),
+                    Sprite(0, wind_h-50, wind_w, 50, plat_img)]
             finish.rect.x = 630
             finish.rect.y = 400
             portal2.rect.x = 26
@@ -560,7 +578,6 @@ while game:
             if Open == False:
                 door.draw()
                 key.draw()
-            draw_plats(plats_lvl5)
             
             portal1.draw()
             portal2.draw()
