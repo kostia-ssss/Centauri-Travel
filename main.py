@@ -1,9 +1,9 @@
+# importing
 import pygame
 pygame.init()
 from random import randint
 import time
 import json
-import math
 
 # settings
 FPS = 60
@@ -14,6 +14,7 @@ patrons = 70
 Open = False
 On = False
 EnemyAlive = True
+BossAlive = True
 Dangerous = True
 CanBuyYellow = False
 CanBuyWhite = False
@@ -21,9 +22,16 @@ CanBuyGreen = False
 CanBuyPurple = False
 CanBuyTurquoise = False
 PlayHistory = False
+CPBS = True
 
-with open("data.json", "r", encoding="utf-8") as file:
-    data = json.load(file)
+# loading
+try:
+    with open("data.json", "r", encoding="utf-8") as file:
+        data = json.load(file)
+except:
+    with open("data.json", "w", encoding="utf-8") as file:
+        data = {"coins": 8, "lvl": 6, "costume": "Player", "costumes": {"Player": "Yes", "Yellow": "No", "White": "No", "Green": "No", "Purple": "No", "Turquoise": "No"}, "music": "No"}
+        json.dump(data, file)
 
 lvl = data["lvl"]
 score = data["coins"]
@@ -33,6 +41,7 @@ if data["music"] == "Yes":
 else:
     music = 0
 
+# creating window and background
 clock = pygame.time.Clock()
 
 wind_w, wind_h = 700, 500
@@ -44,11 +53,14 @@ pygame.display.set_icon(icon)
 bg = pygame.image.load("bg.jfif")
 bg = pygame.transform.scale(bg, (wind_w, wind_h))
 
+# music
 pygame.mixer.music.load("music.mp3")
 pygame.mixer.music.set_volume(0.3)
 pygame.mixer.music.play(-1)
-coin_sound =  pygame.mixer.Sound("coin_sound.mp3")
+coin_sound = pygame.mixer.Sound("coin_sound.mp3")
+boss_sound = pygame.mixer.Sound("boss_sound.mp3")
 
+# classes
 class Sprite:
     def __init__(self , x , y , w , h, img):
         self.img = img
@@ -77,6 +89,8 @@ class Player(Sprite):
         self.CanJump = True
         self.isJump = False
         self.isLift = False
+        self.max_wait = 15
+        self.wait = self.max_wait
         for im in imgs:
             im = pygame.transform.scale(im, (w, h))
             self.images.append(im)
@@ -139,8 +153,7 @@ class Player(Sprite):
             return True
         else:
             return False
-        
-    
+
     def change_costume(self):
         if costume == "Player":
             imgs = self.imgs
@@ -177,7 +190,21 @@ class Player(Sprite):
             self.anim_timer -= 1
     
     def fire(self, pos):
-        bullets.append(Bullet(self.rect.centerx - 13,self.rect.y, 10, 10, pygame.image.load("bullet.png"), 15, pos, "player"))
+        global patrons
+        if self.wait == 0:
+            bullets.append(Bullet(self.rect.centerx - 13,self.rect.y, 10, 10, pygame.image.load("bullet.png"), 15, pos, "player"))
+            self.wait = self.max_wait
+            patrons -= 1
+        else:
+            self.wait -= 1
+    
+    def take_damage(self):
+        global losing, hp
+        if hp > 1:
+            HP.pop(hp-1)
+            hp -= 1
+        else:
+            losing = True
 
 class Enemy(Sprite):
     def __init__(self , x , y , w , h , img1 , speed):
@@ -279,7 +306,7 @@ class Bullet(Sprite):
         self.vect = v3.normalize()
 
     def move(self):
-        global hp
+        global hp, losing
         self.rect.x += self.vect[0] * self.speed
         self.rect.y += self.vect[1] * self.speed
         if self.type == "player":
@@ -287,29 +314,51 @@ class Bullet(Sprite):
                 bullets.remove(self)   
         elif self.type == "boss":
             if self.rect.colliderect(player.rect):
+                player.take_damage()
+            
+            if self.rect.colliderect(player.rect) or any(self.rect.colliderect(plat.rect) for plat in plats):
                 Bbullets.remove(self)
-                if hp > 1:
-                    HP.pop(hp-1)
-                    hp -= 1
-                else:
-                    losing = True
 
 class Boss(Sprite):
-    def __init__(self, x, y, w, h, img):
+    def __init__(self, x, y, w, h, img, speed):
         super().__init__(x, y, w, h, img)
-        self.delay = 1
+        self.CanFire = False
+        self.max_wait = 50
+        self.wait = self.max_wait
+        self.speed = speed
+        self.hp = 10
+    
+    def move(self):
+        self.rect.x += self.speed
+            
+        if self.rect.right >= wind_w or self.rect.left <= 0:
+            self.speed *= -1
     
     def check_player_pos(self):
-        global cur_time
-        if round(cur_time, 20) % self.delay == 0:
-            self.player_x, self.player_y = player.rect.x, player.rect.y
+        if self.wait == 0:
+            self.CanFire = True
+            self.wait = self.max_wait
+        else:
+            self.CanFire = False
+            self.wait -= 1
+        
+        if self.CanFire:
+            self.player_x, self.player_y = player.rect.centerx, player.rect.centery
             pl_pos = [self.player_x, self.player_y]
             return pl_pos
     
     def shooting_player(self, pos):
         if pos != None:
-            Bbullets.append(Bullet(self.rect.x, self.rect.y, 25, 25, pygame.image.load("bullet.png"), 5, pos, "boss"))
+            Bbullets.append(Bullet(self.rect.centerx, self.rect.centery, 25, 25, pygame.image.load("Bbullet.png"), 5, pos, "boss"))
+    
+    def take_damage(self):
+        global BossAlive
+        if hp > 1:
+            self.hp -= 1
+        else:
+            BossAlive = False
 
+# loading images
 p_img1 = pygame.image.load("pl_anim/Player_idle1.png")
 p_img2 = pygame.transform.flip(p_img1, True, False)
 plat_img = pygame.image.load("platform.png")
@@ -319,6 +368,7 @@ key_img = pygame.image.load("key.png")
 laser_off_img = pygame.image.load("Lasers/Laser_off.png")
 coin_img = pygame.image.load("coin.png")
 
+# lists of costumes
 images = [pygame.image.load("pl_anim/Player_idle1.png"),
           pygame.image.load("pl_anim/Player_walk2.png"),
           pygame.image.load("pl_anim/Player_walk3.png")]
@@ -343,6 +393,7 @@ Pimages = [pygame.image.load("pl_anim/Purple_idle1.png"),
           pygame.image.load("pl_anim/Purple_walk2.png"),
           pygame.image.load("pl_anim/Purple_walk3.png")]
 
+# creating objects
 player = Player(50, 400, 30, 50, p_img1, p_img2, 5, 20, images, Yimages, Wimages, Timages, Pimages, Gimages)
 start = Sprite(50, 400, 20, 50, pygame.image.load("Portal.png"))
 finish = Sprite(150, 90, 20, 50, pygame.image.load("Portal.png"))
@@ -361,7 +412,7 @@ logo = Sprite(156, 67, 400, 70, pygame.image.load("logo.png"))
 shop_shablon = Sprite(0, 0, wind_w, wind_h, pygame.image.load("shop.png"))
 new_enemy = UltraEnemy(307, 260, 50, 50, pygame.image.load("New_enemy.png"), 10, 10, 150, 100)
 close_btn = Sprite(wind_w-60, 30, 60, 30, pygame.image.load("Close_btn.png"))
-boss = Boss(0, 0, 150, 100, pygame.image.load("boss.png"))
+boss = Boss(0, 0, 150, 100, pygame.image.load("boss.png"), 3)
 
 hist1 = Sprite(0, 0, wind_w, wind_h, pygame.image.load("kat_scena/1.png"))
 hist2 = Sprite(0, 0, wind_w, wind_h, pygame.image.load("kat_scena/2.png"))
@@ -446,6 +497,7 @@ cur_time = start_time
 
 hp = len(HP)
 
+# main loop
 game = True
 menu = True
 shop = False
@@ -472,7 +524,7 @@ while game:
         for coin in coins:
             coin.draw()
             if player.rect.colliderect(coin.rect):
-                # coin_sound.play(1)
+                coin_sound.play(1)
                 coins.remove(coin)
                 score += 1
                 
@@ -485,11 +537,6 @@ while game:
         menu_btn.draw()
         start.draw()
         finish.draw()
-        boss.draw()
-        pos_pl =  boss.check_player_pos()
-        boss.shooting_player(pos_pl)
-        if pos_pl != None:
-            print(pos_pl)
         if lvl > 3 and lvl < 6:
             btn.draw()
         
@@ -503,10 +550,6 @@ while game:
                 EnemyAlive = False
                 bullets.remove(b)
         
-        for Bb in Bbullets:
-            Bb.draw()
-            Bb.move()
-        
         if player.rect.colliderect(finish.rect):
             lvl += 1
             with open("data.json", "w", encoding="utf-8") as file:
@@ -514,29 +557,9 @@ while game:
                 json.dump(data, file)
             reset()
         
-        # if player.rect.colliderect(lift.rect):
-        #     collision(lift)
-        
         if player.rect.colliderect(enemy_lvl2.rect):
-            if hp > 1:
-                HP.pop(hp-1)
-                hp -= 1
-            else:
-                losing = True
-            print(hp)
+            player.take_damage()
             reset()
-        
-        if player.rect.colliderect(new_enemy.rect):
-            if EnemyAlive:
-                if hp > 1:
-                    HP.pop(hp-1)
-                    hp -= 1
-                else:
-                    losing = True
-                print(hp)
-                reset()
-            else:
-                pass
         
         if player.rect.colliderect(btn.rect):
             On = True
@@ -659,6 +682,41 @@ while game:
             if EnemyAlive:
                 new_enemy.draw()
                 new_enemy.move()
+            
+            if player.rect.colliderect(new_enemy.rect):
+                if EnemyAlive:
+                    player.take_damage()
+                    reset()
+                else:
+                    pass
+        
+        elif lvl == 7:
+            plats = [Sprite(0, wind_h-50, wind_w, 50, plat_img)]
+            lvl_txt = bold_font.render("BOSS", True, (255, 0, 0))
+            if CPBS:
+                boss_sound.play()
+                CPBS = False
+            
+            if BossAlive:
+                finish.rect.x = 100000
+            else:
+                finish.rect.x = wind_w - 150
+            
+            if BossAlive:
+                boss.draw()
+                boss.move()
+                pos_pl =  boss.check_player_pos()
+                boss.shooting_player(pos_pl)
+                for Bb in Bbullets:
+                    Bb.draw()
+                    Bb.move()
+                if pos_pl != None:
+                    print(pos_pl)
+                for bul in bullets:
+                    if boss.rect.colliderect(bul.rect):
+                        boss.take_damage()
+                        bullets.remove(bul)
+                    
 
     
     if music == 0:
@@ -757,7 +815,6 @@ while game:
             pos = pygame.mouse.get_pos()
             if patrons > 0 and not menu:
                 player.fire(pos)
-                patrons -= 1
         
         if event.type == pygame.MOUSEBUTTONDOWN:
             x, y = event.pos
