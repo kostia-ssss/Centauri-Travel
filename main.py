@@ -253,9 +253,9 @@ class Laser(Sprite):
         self.delay = delay
     
     def anim(self):
-        global a, Dangerous
+        global a, Dangerous, cur_time
         a = randint(1, 7)
-        if cur_time%self.delay != 0:
+        if round(cur_time)%self.delay == 0:
             self.img = pygame.image.load(f"Lasers/Laser{a}.png")
             Dangerous = True
             self.img = pygame.transform.scale(self.img, (self.rect.w, self.rect.h))
