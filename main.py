@@ -9,6 +9,7 @@ import json
 FPS = 60
 a = 1
 i = 1
+txti = 0
 music = 1
 patrons = 70
 Open = False
@@ -403,7 +404,7 @@ enemy_lvl2 = Enemy(300, 10000, 70, 30, enemy_img, 2)
 play_btn = Sprite(wind_w/2-70, wind_h/2-50, 140, 100, pygame.image.load("Play_btn.png"))
 shop_btn = Sprite(wind_w/2-70, wind_h/2+100, 140, 100, pygame.image.load("Shop_btn.png"))
 history_btn = Sprite(27, 280, 140, 100, pygame.image.load("History_btn.png"))
-QTM_btn = Sprite(0, 0, 70, 50, pygame.image.load("Quit_to_menu_btn.png"))
+QTM_btn = Sprite(wind_w-70, wind_h-50, 70, 50, pygame.image.load("Quit_to_menu_btn.png"))
 menu_btn = Sprite(wind_w-60, 0, 60, 30, pygame.image.load("Menu_btn.png"))
 lift1 = Lift(100, 30, plat_img, 3, 570, 570, 70, 410, "vertical")
 lift2 = Lift(100, 30, plat_img, 1, 570, 570, 100, 304, "vertical")
@@ -451,20 +452,21 @@ coins = [Sprite(142, 400, 25, 25, coin_img),
 font = pygame.font.SysFont("Century Gothic", 20)
 big_font = pygame.font.SysFont("Century Gothic", 40)
 bold_font = pygame.font.SysFont("Century Gothic", 40, True)
+BBF = pygame.font.SysFont("Century Gothic", 100, True)
 small_font = pygame.font.SysFont("Century Gothic", 15)
 
 tutorial_txt1 = small_font.render("Press A & D to move", True, (255, 255, 255))
 tutorial_txt2 = small_font.render("Press SPACE to jump", True, (255, 255, 255))
 tutorial_txt3 = small_font.render("Don't touch the enemy!", True, (255, 255, 255))
+win_txt = BBF.render("YOU WIN", True, (0, 255, 0))
 lose = bold_font.render("You lose(", True, (255, 0, 0))
 reset_txt = bold_font.render("Press R to reset", True, (255, 255, 255))
+tsina = 0
+YHGAM_txt = bold_font.render(f"You need {tsina} extra coins", True, (255, 0, 0))
 tutorial_txt = tutorial_txt1
 
 portal2 = Portal(283, 256, 20, 50, pygame.image.load("Portal.png"), None)
 portal1 = Portal(105, 256, 20, 50, pygame.image.load("Portal.png"), None)
-
-portal2.pair = portal1
-portal1.pair = portal2
 
 lasers_lvl3 = [Laser(133, 350, 20, 100, pygame.image.load("Lasers/Laser1.png"), 2),
                Laser(224, 350, 20, 100, pygame.image.load("Lasers/Laser1.png"), 2),
@@ -502,13 +504,16 @@ game = True
 menu = True
 shop = False
 losing = False
+win = False
 while game:
     i += 1
     mus = Sprite(21, 17, 100, 60, pygame.image.load(f"music{music}.png"))
     window.blit(bg, (0, 0))
-    if not menu and not losing:
-        # player.img = pygame.image.load(f"pl_anim/{costume}_idle1.png")
-        # player.img = pygame.transform.scale(player.img, (player.rect.w, player.rect.h))
+    if win:
+        window.blit(win_txt, (50, 50))
+    if boss.hp <= 0:
+        win = True
+    if not menu and not losing and not win:
         if patrons < 70:
             patrons += 0.01
         mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -518,7 +523,6 @@ while game:
         window.blit(p_txt, (wind_w-180, 0))
         lvl_txt = big_font.render(f"Level {lvl}", True, (200, 255, 200))
         window.blit(lvl_txt, (263, 214))
-        
         new_time = time.time()
         cur_time = new_time - start_time
         for coin in coins:
@@ -698,11 +702,6 @@ while game:
                 CPBS = False
             
             if BossAlive:
-                finish.rect.x = 100000
-            else:
-                finish.rect.x = wind_w - 150
-            
-            if BossAlive:
                 boss.draw()
                 boss.move()
                 pos_pl =  boss.check_player_pos()
@@ -710,15 +709,14 @@ while game:
                 for Bb in Bbullets:
                     Bb.draw()
                     Bb.move()
-                if pos_pl != None:
-                    print(pos_pl)
                 for bul in bullets:
                     if boss.rect.colliderect(bul.rect):
                         boss.take_damage()
                         bullets.remove(bul)
-                    
-
-    
+                finish.rect.x = 100000
+                boss_txt = bold_font.render(f"Boss HP: {boss.hp}", True, (255, 0, 0))
+                window.blit(boss_txt, (0, 100))
+ 
     if music == 0:
         pygame.mixer.music.pause()
         data["music"] = "No"
@@ -763,13 +761,18 @@ while game:
         QTM_btn.draw()
         for btn in buybtns:
             btn.draw()
+        if txti < FPS and txti > 0:
+            txti += 1
+            YHGAM_txt = bold_font.render(f"You need {tsina-score} extra coins", True, (255, 0, 0))
+            window.blit(YHGAM_txt, (195, 275))
+        elif txti >= FPS:
+            txti = 0
     
     if losing:
         window.blit(lose, (200, 200))
         window.blit(reset_txt, (200, 300))
     
     if PlayHistory:
-        print(i)
         if i < 100:
             hist1.draw()
         elif i >= 100 and i < 150:
@@ -824,6 +827,7 @@ while game:
                 menu = False
             if QTM_btn.rect.collidepoint(x, y):
                 shop = False
+                menu = True
             if menu_btn.rect.collidepoint(x, y):
                 menu = True
                 with open("data.json", "w", encoding="utf-8") as file:
@@ -834,16 +838,36 @@ while game:
             if close_btn.rect.collidepoint(x, y):
                 game = False
             
-            if buy_btn1.rect.collidepoint(x, y) and CanBuyGreen == True:
-                data["costumes"]["Green"] = "Yes"
-            if buy_btn2.rect.collidepoint(x, y) and CanBuyPurple:
-                data["costumes"]["Purple"] = "Yes"
-            if buy_btn3.rect.collidepoint(x, y) and CanBuyYellow:
-                data["costumes"]["Yellow"] = "Yes"
-            if buy_btn4.rect.collidepoint(x, y) and CanBuyWhite:
-                data["costumes"]["White"] = "Yes"
-            if buy_btn5.rect.collidepoint(x, y) and CanBuyTurquoise:
-                data["costumes"]["Turquoise"] = "Yes"
+            if buy_btn1.rect.collidepoint(x, y):
+                if CanBuyGreen:
+                    data["costumes"]["Green"] = "Yes"
+                else:
+                    txti = 1
+                    tsina = 15          
+            if buy_btn2.rect.collidepoint(x, y):
+                if CanBuyPurple:
+                    data["costumes"]["Purple"] = "Yes"
+                else:
+                    txti = 1
+                    tsina = 20
+            if buy_btn3.rect.collidepoint(x, y):
+                if CanBuyYellow:
+                    data["costumes"]["Yellow"] = "Yes"
+                else:
+                    txti = 1
+                    tsina = 5
+            if buy_btn4.rect.collidepoint(x, y):
+                if CanBuyWhite:
+                    data["costumes"]["White"] = "Yes"
+                else:
+                    txti = 1
+                    tsina = 10
+            if buy_btn5.rect.collidepoint(x, y):
+                if CanBuyTurquoise:
+                    data["costumes"]["Turquoise"] = "Yes"
+                else:
+                    txti = 1
+                    tsina = 25
             
             if history_btn.rect.collidepoint(x, y):
                 i = 0
