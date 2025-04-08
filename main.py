@@ -819,6 +819,12 @@ while game:
             if patrons > 0 and not menu:
                 player.fire(pos)
         
+        elif keys[pygame.K_x]:
+            with open("basedata.json", "r", encoding="utf-8") as file:
+                data = json.load(file)
+            with open("data.json", "w", encoding="utf-8") as file:
+                json.dump(data, file)
+        
         if event.type == pygame.MOUSEBUTTONDOWN:
             x, y = event.pos
             print(x)
